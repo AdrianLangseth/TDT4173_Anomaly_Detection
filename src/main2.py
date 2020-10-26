@@ -1,8 +1,9 @@
+import numpy as np
 import torch
 import pyro
 import pyro.distributions as dist
 from pyro.infer import Trace_ELBO, SVI
-from pyro.optim import SGD
+from pyro.optim import SGD, Adam
 # from: https://towardsdatascience.com/making-your-neural-network-say-i-dont-know-bayesian-nns-using-pyro-and-pytorch-b1c24e6ab8cd
 
 from Net import NN
@@ -27,8 +28,8 @@ def model(x_data, y_data):
         ('fc1.weight', 'fc1.bias', 'out.weight', 'out.bias'),
         map(zeros_ones_normal, (net.fc1.weight, net.fc1.bias, net.out.weight, net.out.bias))
     ))
-    lifted_module = pyro.random_module("module", net, priors)
-    lhat = log_softmax(lifted_module()(x_data))
+    lifted_module = pyro.random_module("module", net, priors)()
+    lhat = log_softmax(lifted_module(x_data))
     
     pyro.sample("obs", dist.Categorical(logits=lhat), obs=y_data)
 
@@ -45,21 +46,40 @@ def guide(x_data, y_data):
         'out.weight': make_prior_normal("out_w", net.out.weight).independent(1),
         'out.bias': make_prior_normal("out_b", net.out.bias)
     }
+    return pyro.random_module("module", net, priors)()
 
-    lifted_module = pyro.random_module("module", net, priors)
-    
-    return lifted_module()
+# optim = SGD({'lr': lr})
+optim = Adam({"lr": lr})
+svi = SVI(model, guide, optim, loss=Trace_ELBO())
 
-
-svi = SVI(model, guide, SGD({'lr': lr}), loss=Trace_ELBO())
-num_iterations = 5
+num_epochs = 3
 loss = 0
-for j in range(num_iterations):
+for i in range(num_epochs):
     loss = 0
     for batch_id, data in enumerate(train_loader):
+        if batch_id >= 40: break
         X, y = data
         loss += svi.step(X.view(-1, 28*28), y)
     normalizer_train = len(train_loader.dataset)
     total_epoch_loss_train = loss / normalizer_train
     
-    print("Epoch ", j, " Loss ", total_epoch_loss_train)
+    print("Epoch ", i, " Loss ", total_epoch_loss_train)
+
+
+num_samples = 10
+def predict(x):
+    sampled_models = [guide(None, None) for _ in range(num_samples)]
+    yhats = [model(x).data for model in sampled_models]
+    mean = torch.mean(torch.stack(yhats), 0)
+    return np.argmax(mean.numpy(), axis=1)
+
+print('Prediction when network is forced to predict')
+correct = 0
+total = 0
+for i, data in enumerate(test_loader):
+    if i >= 20: break
+    images, labels = data
+    predicted = predict(images.view(-1,28*28))
+    total += labels.size(0)
+    correct += sum(p == l for p, l in zip(predicted, labels))
+print("accuracy: %d %%" % (100 * int(correct) / int(total)))
