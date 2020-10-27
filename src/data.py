@@ -11,7 +11,7 @@ transform = transforms.Compose([
     # transforms.Normalize((0.5, ), (0.5, ))
 ])
 
-val_set_size = 30_000
+val_set_size = 10_000
 # Training set is 60k ims, test set is 10k ims. 
 # TODO: Agree on where validation set will come from and its size. I propose 10k from train
 test_set = torchvision.datasets.MNIST(root='../data', train=False, download=True, transform=transform)
