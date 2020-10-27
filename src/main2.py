@@ -1,15 +1,18 @@
 import numpy as np
 import torch
+import torch.nn.functional as F
 import pyro
 import pyro.distributions as dist
 from pyro.infer import Trace_ELBO, SVI
 from pyro.optim import SGD, Adam
 
 from Net import NN
-from data import train_loader, test_loader, val_loader
+from data import train_loader, test_loader, val_loader, batch_size
 
+net = NN(28*28, 512, 10)
 lr = 0.01
-net = NN(28*28, 1024, 10)
+num_samples = 10
+num_epochs = 10
 
 log_softmax = torch.nn.LogSoftmax(dim=1)
 softplus = torch.nn.Softplus()
@@ -45,27 +48,69 @@ def guide(x_data=None, y_data=None):
 # optim = SGD({'lr': lr})
 optim = Adam({"lr": lr})
 svi = SVI(model, guide, optim, loss=Trace_ELBO())
+def train():
+    for i in range(num_epochs):
+        loss = sum(
+            svi.step(X.view(-1, 28*28), y) 
+            for X, y in train_loader
+        )
+        total_epoch_loss = loss / len(train_loader.dataset)
+        print("Epoch ", i, " Loss ", total_epoch_loss)
 
-num_epochs = 3
-for i in range(num_epochs):
-    loss = sum(
-        svi.step(X.view(-1, 28*28), y) 
-        for X, y in train_loader
-    )
-    total_epoch_loss = loss / len(train_loader.dataset)
-    print("Epoch ", i, " Loss ", total_epoch_loss)
-
-
-num_samples = 10
 def predict(x):
     sampled_models = [guide(None, None) for _ in range(num_samples)]
     yhats = [model(x).data for model in sampled_models]
     mean = torch.mean(torch.stack(yhats), 0)
     return np.argmax(mean.numpy(), axis=1)
 
-num_correct = sum(
-    np.sum(predict(images.view(-1, 28*28)) == labels.numpy())
-    for images, labels in test_loader
-)
-accuracy = 100 * num_correct / len(test_loader.dataset)
-print(f"accuracy: {accuracy}%")
+def force_decision_accuracy():
+    num_correct = sum(
+        np.sum(predict(images.view(-1, 28*28)) == labels.numpy())
+        for images, labels in test_loader
+    )
+    accuracy = 100 * num_correct / len(test_loader.dataset)
+    print(f"accuracy: {accuracy}%")
+
+def allow_uncertainty_accuracy():
+    num_samples = len(test_loader.dataset)
+    print("Total images: ", num_samples)
+    for i in range(1, 50):
+        print(f"\nminimum certainty: {i/100}")
+        correct_predictions = total_predictions = 0
+        for images, labels in test_loader:    
+            correct, total = test_batch(images, labels, i/100)
+            total_predictions += total
+            correct_predictions += correct
+
+        print("Skipped: ", num_samples - total_predictions)
+        print("Predicted:", total_predictions, "Correct:", correct_predictions)
+        accuracy = 100 * correct_predictions / total_predictions
+        print(f"Accuracy without uncertain predictions: {accuracy:02}%")
+
+def give_uncertainities(x):
+    sampled_models = [guide(None, None) for _ in range(num_samples)]
+    yhats = [F.log_softmax(model(x.view(-1,28*28)).data, 1).detach().numpy() for model in sampled_models]
+    return np.asarray(yhats)
+
+def test_batch(images, labels, min_certainty=0.2):
+    y = give_uncertainities(images).transpose(1, 2, 0) # row: sample. col: class. third: model
+    predictions = np.median(np.exp(y), axis=2)
+    certain = np.max(predictions, axis=1) > min_certainty
+    num_correct = np.sum(
+        np.argmax(predictions[certain, :], axis=1) == labels.numpy()[certain]
+    )
+    """
+    num_predictions = num_correct_predictions = 0
+    y = give_uncertainities(images).transpose(2, 0, 1) # row: sample. col: certainty of class. third: model
+    for preds, label in zip(y, labels):
+        preds = np.median(np.exp(preds), axis=1)
+        if np.max(preds) > min_certainty: 
+            num_predictions += 1
+            num_correct_predictions += np.argmax(preds) == label
+    """
+    return num_correct, np.sum(certain)
+
+
+train()
+# force_decision_accuracy()
+allow_uncertainty_accuracy()
