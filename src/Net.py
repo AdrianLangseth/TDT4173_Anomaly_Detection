@@ -9,6 +9,7 @@ from pyro.optim import SGD, Adam
 
 from data import train_loader, test_loader, val_loader, batch_size, training_set_size, test_set_size
 
+# Base network that we're building on
 class NN(torch.nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super().__init__()
@@ -26,7 +27,7 @@ lr = 0.005
 optim = Adam({"lr": lr})
 num_epochs = 20
 num_samples = 20
-min_certainty = 0.02
+min_certainty = 0.0
 
 metadata = {
     "training_set_size": training_set_size,
@@ -40,7 +41,9 @@ metadata = {
     "accuracies_with_uncertainty": {}
 }
 
-
+"""
+    BNN Model setup
+"""
 log_softmax = torch.nn.LogSoftmax(dim=1)
 softplus = torch.nn.Softplus()
 
@@ -72,6 +75,10 @@ def guide(x_data=None, y_data=None):
     }
     return pyro.random_module("module", net, priors)()
 
+
+"""
+    Model training
+"""
 svi = SVI(model, guide, optim, loss=Trace_ELBO())
 def train():
     for i in range(num_epochs):
@@ -85,30 +92,36 @@ def train():
         metadata["accuracies_with_uncertainty"][i] = accuracy_exclude_uncertain()
         print("Epoch ", i, " Loss ", total_epoch_loss)
 
-def predict_labels(x):
-    sampled_models = [guide(None, None) for _ in range(num_samples)]
-    yhats = [model(x).data for model in sampled_models]
-    mean = torch.mean(torch.stack(yhats), 0)
-    return np.argmax(mean.numpy(), axis=1)
 
+"""
+    Prediction functions
+"""
 def get_prediction_confidence(x):
-    sampled_models = [guide(None, None) for _ in range(num_samples)]
-    yhats = [F.log_softmax(model(x.view(-1,28*28)).data, 1).detach().numpy() for model in sampled_models]
-    return np.asarray(yhats)
+    sample_models = [guide(None, None) for _ in range(num_samples)]
+    yhats = [model(x.view(-1, 28*28)).data for model in sample_models]
+    confidences = np.exp(F.log_softmax(torch.stack(yhats), 2))
+    return np.asarray(confidences)
 
-def accuracy_all(data_loader=test_loader):
+def predict_all(x):
+    confidences = np.median(get_prediction_confidence(x), 0)
+    return np.argmax(confidences, axis=1)
+
+"""
+    Accuracy functions (prediction interpreters)
+"""
+def accuracy_all(data_loader=val_loader):
     num_correct = sum(
-        np.sum(predict_labels(images.view(-1, 28*28)) == labels.numpy())
+        np.sum(predict_all(images) == labels.numpy())
         for images, labels in data_loader
     )
     accuracy = num_correct / len(data_loader.dataset)
     return f"{accuracy:.2%}"
 
-def accuracy_exclude_uncertain(data_loader=test_loader):
+def accuracy_exclude_uncertain(data_loader=val_loader):
     num_items = len(data_loader.dataset)
     correct_predictions = total_predictions = 0
     for images, labels in data_loader:    
-        correct, total = get_confident_predictions(images, labels)
+        correct, total = predict_confident(images, labels)
         total_predictions += total
         correct_predictions += correct
     accuracy = correct_predictions / total_predictions if total_predictions else 0
@@ -118,11 +131,28 @@ def accuracy_exclude_uncertain(data_loader=test_loader):
         "correct": correct_predictions, "accuracy": f"{accuracy:.2%}"
     }
 
-def get_confident_predictions(images, labels, min_certainty=min_certainty):
-    y = get_prediction_confidence(images).transpose(1, 2, 0) # row: sample. col: class. third: model
-    predictions = np.median(np.exp(y), axis=2)  # get median of model predictions for each class
-    certain = np.max(predictions, axis=1) > min_certainty # index of all predictions more certain than min threshold
-    num_correct = np.sum(
-        np.argmax(predictions[certain, :], axis=1) == labels.numpy()[certain]
-    )
-    return num_correct, np.sum(certain)
+def predict_confident(images, labels, min_certainty=min_certainty):
+    labels = labels if type(labels) == np.ndarray else labels.view(-1).numpy()
+    confidences = np.median(get_prediction_confidence(images), axis=0)
+    certain = np.max(confidences, axis=1) > min_certainty
+    confident_predictions = np.argmax(confidences[certain, :], axis=1)
+    
+    num_confident = np.sum(certain)
+    num_correct = np.sum(confident_predictions == labels[certain])
+
+    return num_correct, num_confident
+
+def prediction_data(images, labels):
+    labels = labels if type(labels) == np.ndarray else labels.view(-1).numpy()
+    confidences = np.median(get_prediction_confidence(images), axis=0)
+    certain = np.max(confidences, axis=1) > min_certainty
+
+    all_predictions = np.argmax(confidences, axis=1)
+    confident_predictions = all_predictions[:]
+    confident_predictions[~certain] = -1
+
+    num_confident = np.sum(certain)
+    num_correct = np.sum(confident_predictions == labels[certain])
+
+    return all_predictions, confident_predictions, num_confident, num_correct
+
