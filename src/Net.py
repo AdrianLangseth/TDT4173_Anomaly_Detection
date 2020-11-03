@@ -26,7 +26,7 @@ lr = 0.005
 optim = Adam({"lr": lr})
 num_epochs = 20
 num_samples = 20
-min_certainty = 0.15
+min_certainty = 0.02
 
 metadata = {
     "training_set_size": training_set_size,
@@ -96,22 +96,22 @@ def get_prediction_confidence(x):
     yhats = [F.log_softmax(model(x.view(-1,28*28)).data, 1).detach().numpy() for model in sampled_models]
     return np.asarray(yhats)
 
-def accuracy_all():
+def accuracy_all(data_loader=test_loader):
     num_correct = sum(
         np.sum(predict_labels(images.view(-1, 28*28)) == labels.numpy())
-        for images, labels in test_loader
+        for images, labels in data_loader
     )
-    accuracy = num_correct / len(test_loader.dataset)
+    accuracy = num_correct / len(data_loader.dataset)
     return f"{accuracy:.2%}"
 
-def accuracy_exclude_uncertain():
-    num_items = len(test_loader.dataset)
+def accuracy_exclude_uncertain(data_loader=test_loader):
+    num_items = len(data_loader.dataset)
     correct_predictions = total_predictions = 0
-    for images, labels in test_loader:    
+    for images, labels in data_loader:    
         correct, total = get_confident_predictions(images, labels)
         total_predictions += total
         correct_predictions += correct
-    accuracy = correct_predictions / total_predictions
+    accuracy = correct_predictions / total_predictions if total_predictions else 0
     return {
         "total": num_items, "skipped": num_items - total_predictions, 
         "skip%": f"{1 - total_predictions/num_items:.2%}", "predicted": total_predictions, 
