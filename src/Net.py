@@ -23,11 +23,11 @@ class NN(torch.nn.Module):
 
 hl_size = 512
 net = NN(28*28, hl_size, 10)
-lr = 0.005
+lr = 0.01
 optim = Adam({"lr": lr})
-num_epochs = 20
+num_epochs = 10
 num_samples = 20
-min_certainty = 0.0
+min_certainty = 0.2
 
 metadata = {
     "training_set_size": training_set_size,
@@ -118,6 +118,7 @@ def accuracy_all(data_loader=val_loader):
     return f"{accuracy:.2%}"
 
 def accuracy_exclude_uncertain(data_loader=val_loader):
+    print(f"\n{min_certainty = }")
     num_items = len(data_loader.dataset)
     correct_predictions = total_predictions = 0
     for images, labels in data_loader:    
@@ -131,7 +132,7 @@ def accuracy_exclude_uncertain(data_loader=val_loader):
         "correct": correct_predictions, "accuracy": f"{accuracy:.2%}"
     }
 
-def predict_confident(images, labels, min_certainty=min_certainty):
+def predict_confident(images, labels):
     labels = labels if type(labels) == np.ndarray else labels.view(-1).numpy()
     confidences = np.median(get_prediction_confidence(images), axis=0)
     certain = np.max(confidences, axis=1) > min_certainty
@@ -148,11 +149,9 @@ def prediction_data(images, labels):
     certain = np.max(confidences, axis=1) > min_certainty
 
     all_predictions = np.argmax(confidences, axis=1)
-    confident_predictions = all_predictions[:]
-    confident_predictions[~certain] = -1
+    confident_predictions = np.where(certain, all_predictions, -1)
 
-    num_confident = np.sum(certain)
-    num_correct = np.sum(confident_predictions == labels[certain])
+    num_confident = np.sum(confident_predictions != -1)
+    num_correct_confident = np.sum(confident_predictions == labels)
 
-    return all_predictions, confident_predictions, num_confident, num_correct
-
+    return all_predictions, confident_predictions, num_confident, num_correct_confident    
