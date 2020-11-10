@@ -41,16 +41,24 @@ val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
 notmnist_path = "../data/notMNIST_small/"
 class NotMNIST:
     misses = 0
+    size = 10_000
+
+    def __size(self):
+        return self.size or len(self.files)
 
     def __setup_ims(self):
-        self.ims = np.zeros((len(self.files), 28, 28), dtype=np.float32)
-        self.labels = np.zeros(self.ims.shape[0], dtype=np.int8)
-        for i, fn in enumerate(self.files[:len(self)]):
+        self.ims = np.zeros((self.__size(), 28, 28), dtype=np.float32)
+        self.labels = np.zeros(self.__size(), dtype=np.int8)
+        for i, fn in enumerate(self.files):
             try:
                 self.ims[i - self.misses, :, :] = np.asarray(Image.open(fn))
                 self.labels[i - self.misses] = ord(fn.replace("\\", "/").split("/")[-2]) # ascii value of letter
             except:
                 self.misses += 1
+            if i - self.misses >= self.__size():
+                break
+
+        print("num_files", len(self.files), "num misses:", self.misses)
     
     def __init__(self):
         self.files = [
@@ -73,7 +81,7 @@ notmnist_data = NotMNIST()
 sampler = sampler.BatchSampler(
     torch.utils.data.sampler.RandomSampler(notmnist_data),
     batch_size=batch_size,
-    drop_last=True
+    drop_last=False
 )
 notmnist_loader = DataLoader(
     notmnist_data,
