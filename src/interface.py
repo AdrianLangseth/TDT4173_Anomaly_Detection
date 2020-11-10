@@ -3,7 +3,7 @@ import pyro
 import numpy as np
 
 from data import test_loader, test_set_size, notmnist_loader
-from Net import min_certainty, predict_all, prediction_data
+from Net import min_certainty, prediction_data
 from main import model_path
 
 

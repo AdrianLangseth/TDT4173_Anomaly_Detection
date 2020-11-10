@@ -9,7 +9,7 @@ import random
 from glob import glob
 from PIL import Image
 
-batch_size = 128  # going higher than 43 results in NaN results if using SGD
+batch_size = 256  # going higher than 43 results in NaN results if using SGD
 
 normalize = True
 if normalize:
@@ -20,8 +20,8 @@ if normalize:
 else:
     transform = transforms.Compose([transforms.ToTensor()])
 
-training_set_size = 50_000
-val_set_size = 10_000
+training_set_size = 2_500
+val_set_size = 1_000
 test_set_size = 10_000
 
 test_set, _ = random_split(

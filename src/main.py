@@ -7,12 +7,11 @@ from pathlib import Path
 
 from data import training_set_size, normalize, notmnist_loader, batch_size
 import Net
-from Net import train, num_epochs, metadata, accuracy_all, accuracy_exclude_uncertain, lr
+from Net import train, num_epochs, accuracy_all, accuracy_exclude_uncertain, lr
 
 normstr = "" if normalize else "_nonorm"
 fname = f"{training_set_size}t_{num_epochs}eps_{lr}lr_{batch_size}bs{normstr}"
 model_path = f"../models/bnn/{fname}.model"
-metadata_path = f"../meta/bnn/{fname}.txt"
 
 
 if __name__ == '__main__':
@@ -28,10 +27,8 @@ if __name__ == '__main__':
     else:
         print("Found no model. Training one now...")
         train()
-        pprint.pprint(metadata)
         pyro.get_param_store().save(model_path)
-        with open(metadata_path, mode="a+") as f:
-            f.write(pprint.pformat(metadata))
+
     """
     for i in range(10):
         Net.min_certainty = i/10000

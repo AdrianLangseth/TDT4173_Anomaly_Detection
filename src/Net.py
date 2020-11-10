@@ -8,6 +8,7 @@ from pyro.infer import Trace_ELBO, SVI
 from pyro.optim import SGD, Adam
 
 from data import train_loader, test_loader, val_loader, batch_size, training_set_size, test_set_size
+from utils import *
 
 # Base network that we're building on
 class FFNN(torch.nn.Module):
@@ -21,23 +22,16 @@ class FFNN(torch.nn.Module):
         output = self.out(hidden)
         return output
 
-lr = 0.005
+lr = 0.0075
 optim = Adam({"lr": lr})
-num_epochs = 35
-num_samples = 25
+num_epochs = 3
+num_samples = 3
 min_certainty = 0.25
 
-metadata = {
-    "training_set_size": training_set_size,
-    "test_set_size": test_set_size,
-    "num_epochs": num_epochs,
-    "lr": lr,
-    "num_samples": num_samples,
-    "min certainty": min_certainty,
-    "losses": [],
-    "accuracies": [],
-    "accuracies_with_uncertainty": {}
-}
+print_area(
+    "Model Params", 
+    f"{lr = }, {num_epochs = }, {num_samples = }, {min_certainty = }"
+)
 
 """
     BNN Model setup
@@ -80,16 +74,21 @@ def guide(x_data=None, y_data=None):
 """
 svi = SVI(model, guide, optim, loss=Trace_ELBO())
 def train():
+    print_area_start("Training")
     for i in range(num_epochs):
         loss = sum(
             svi.step(X.view(-1, 28*28), y) 
             for X, y in train_loader
         )
         total_epoch_loss = loss / training_set_size
-        metadata["losses"].append(f"{total_epoch_loss:.2f}")
-        metadata["accuracies"].append(accuracy_all())
-        metadata["accuracies_with_uncertainty"][i] = accuracy_exclude_uncertain()
-        print("Epoch ", i, " Loss ", total_epoch_loss)
+        
+        print_area_start("Epoch info")
+        print_area_content(f"Epoch {i}, Loss: {total_epoch_loss}")
+        accuracy_all()
+        accuracy_exclude_uncertain()
+        print_area_end()
+
+    print_area_end()
 
 
 """
@@ -114,22 +113,24 @@ def accuracy_all(data_loader=val_loader):
         for images, labels in data_loader
     )
     accuracy = num_correct / len(data_loader.dataset)
-    return f"{accuracy:.2%}"
+    print_area("Forced Prediction Accuracy", f"{accuracy = :.2%}")
 
 def accuracy_exclude_uncertain(data_loader=val_loader):
-    print(f"\n{min_certainty = }")
-    num_items = len(data_loader.dataset)
-    correct_predictions = total_predictions = 0
-    for images, labels in data_loader:    
-        correct, total = predict_confident(images, labels)
-        total_predictions += total
-        correct_predictions += correct
-    accuracy = correct_predictions / total_predictions if total_predictions else 0
-    return {
-        "total": num_items, "skipped": num_items - total_predictions, 
-        "skip%": f"{1 - total_predictions/num_items:.2%}", "predicted": total_predictions, 
-        "correct": correct_predictions, "accuracy": f"{accuracy:.2%}"
-    }
+    items_total = len(data_loader.dataset)
+    correct_predictions = predictions = 0
+    for images, labels in data_loader:
+        batch_correct_predictions, batch_predictions = predict_confident(images, labels)
+        correct_predictions += batch_correct_predictions
+        predictions += batch_predictions
+    accuracy = correct_predictions / predictions if predictions else 0
+    skipped = items_total - predictions
+    skip_percent = skipped / items_total
+
+    print_area(
+        "Accuracy With Uncertainty", 
+        f"{items_total = }, {skipped = }, {skip_percent = :.2%}",
+        f"{predictions = }, {correct_predictions = }, {accuracy = :.2%}"    
+    )
 
 def predict_confident(images, labels):
     labels = labels if type(labels) == np.ndarray else labels.view(-1).numpy()
