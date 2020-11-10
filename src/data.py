@@ -11,7 +11,7 @@ from PIL import Image
 
 batch_size = 128  # going higher than 43 results in NaN results if using SGD
 
-normalize = False
+normalize = True
 if normalize:
     transform = transforms.Compose([
         transforms.ToTensor(),

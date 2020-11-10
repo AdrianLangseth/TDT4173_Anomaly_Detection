@@ -10,24 +10,22 @@ from pyro.optim import SGD, Adam
 from data import train_loader, test_loader, val_loader, batch_size, training_set_size, test_set_size
 
 # Base network that we're building on
-class NN(torch.nn.Module):
-    def __init__(self, input_size, hidden_size, output_size):
+class FFNN(torch.nn.Module):
+    def __init__(self):
         super().__init__()
-        self.fc1 = Linear(input_size, hidden_size)
-        self.out = Linear(hidden_size, output_size)
+        self.fc1 = Linear(28*28, 512)
+        self.out = Linear(512, 10)
         
     def forward(self, x):
         hidden = F.relu(self.fc1(x))
         output = self.out(hidden)
         return output
 
-hl_size = 512
-net = NN(28*28, hl_size, 10)
-lr = 0.01
+lr = 0.005
 optim = Adam({"lr": lr})
-num_epochs = 10
-num_samples = 20
-min_certainty = 0.2
+num_epochs = 35
+num_samples = 25
+min_certainty = 0.25
 
 metadata = {
     "training_set_size": training_set_size,
@@ -44,6 +42,7 @@ metadata = {
 """
     BNN Model setup
 """
+net = FFNN()
 log_softmax = torch.nn.LogSoftmax(dim=1)
 softplus = torch.nn.Softplus()
 
