@@ -2,7 +2,6 @@ import numpy as np
 import tensorflow.keras as KK
 from numpy.core._multiarray_umath import ndarray
 from scipy.stats import entropy
-
 from data_load import load_MNIST
 
 
@@ -40,7 +39,7 @@ def get_all_predictions():
 
 
 if __name__ == '__main__':
-    x_train, y_train, x_test, y_test = load_MNIST()
+    # x_train, y_train, x_test, y_test = load_MNIST()
     # pred, y = model_predictor('ffnn_models/model_1000', x_test[0:10], y_test[0:10])
     # print(np.argmax(pred, axis=1))
     # print(y)
@@ -48,6 +47,5 @@ if __name__ == '__main__':
     # x = np.equal(pred, fasit)
     # print(sum(x)/len(pred))
     # get_int_predictions("ffnn_models/model_50000", load_MNIST)
-
     x = get_all_predictions()
     print(x)

@@ -44,23 +44,46 @@ def test_notmnist_entropy(size: int, model_path="ffnn_models/model_1000") -> (nd
     entropy = stats.entropy(pred, axis=1)
     return (entropy, pred), (not_entropy, not_pred)
 
+def test_notmnist_entropy_for_all(size: int) -> (ndarray, ndarray):
+    x_notmnist = create_nMNIST_dataset(size)
+    d = {}
+    model_paths = ["ffnn_models", "dropout_models"]
+    sizes = [1000, 2500, 7000, 19000, 50000]
+    for folder in model_paths:
+        for size in sizes:
+            path = folder + "/model_" + str(size)
+            model = KK.models.load_model(path)
+            pred = model.predict(x_notmnist)
+            not_entropy = stats.entropy(pred, axis=1)
+            d[folder[0] + str(size)] = not_entropy
+    return d
+
 
 # print(test_model_nMNIST(100, "ffnn_models/model_50000", 0.8))
-mnist, nmnist = test_notmnist_entropy(10)  # [1,3,2,4,5,] [1,3,45,5,5]
+# mnist, nmnist = test_notmnist_entropy(10)
 
-typ = ["NOT_MNIST", "MNIST"]
-vals = [nmnist[0], mnist[0]]
 
-y = nmnist[0].tolist()
-yy = mnist[0].tolist()
-
+d = test_notmnist_entropy_for_all(5)
 fig, ax = plt.subplots()
-ax.scatter(["NOT_MNIST" for i in range(len(y))], y)
-ax.scatter(["MNIST" for j in range(len(yy))], yy)
 
-# ax.scatter([typ[0] for i in range(len(mnist[0]))], nmnist[0])
-# ax.scatter([typ[0] for j in range(len(mnist[0]))], nmnist[0])
-plt.savefig("hei.jpg")
+mods = d.keys()
+vals = d.values()
+
+for mod in mods:
+    ax.scatter([mod for i in range(len(d[mod]))], d[mod])
+plt.show()
+
+# typ = ["NOT_MNIST", "MNIST"]
+# vals = [nmnist[0], mnist[0]]
+#
+# y = nmnist[0].tolist()
+# yy = mnist[0].tolist()
+#
+# fig, ax = plt.subplots()
+# ax.scatter(["NOT_MNIST" for i in range(len(y))], y)
+# ax.scatter(["MNIST" for j in range(len(yy))], yy)
+#
+# plt.savefig("hei.jpg")
 
 
 # def plot_entropy()
