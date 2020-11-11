@@ -9,6 +9,8 @@ import random
 from glob import glob
 from PIL import Image
 
+training_set_sizes = [50_000, 19_000, 7_000, 2_500, 1_000]
+training_set_index = 0
 batch_size = 256  # going higher than 43 results in NaN results if using SGD
 
 normalize = True
@@ -20,8 +22,8 @@ if normalize:
 else:
     transform = transforms.Compose([transforms.ToTensor()])
 
-training_set_size = 2_500
-val_set_size = 1_000
+training_set_size = training_set_sizes[training_set_index]
+val_set_size = 10_000
 test_set_size = 10_000
 
 test_set, _ = random_split(
@@ -57,8 +59,6 @@ class NotMNIST:
                 self.misses += 1
             if i - self.misses >= self.__size():
                 break
-
-        print("num_files", len(self.files), "num misses:", self.misses)
     
     def __init__(self):
         self.files = [

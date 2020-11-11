@@ -20,12 +20,13 @@ if __name__ == '__main__':
     if Path(model_path).is_file():
         print("found pretrained model!")
         pyro.get_param_store().load(model_path)
-        accuracy_all()
-        accuracy_exclude_uncertain()
     else:
         print("Found no model. Training one now...")
         train()
         pyro.get_param_store().save(model_path)
+
+    accuracy_all()
+    accuracy_exclude_uncertain()
 
     
 

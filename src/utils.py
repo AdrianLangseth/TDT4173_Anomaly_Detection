@@ -4,7 +4,6 @@ def __print(*args, **kwargs):
     print("\t"*num_tabs, end="")
     print(*args, **kwargs)
 
-
 def print_area_start(area_name):
     print()
     __print("-"*5, area_name, "-"*5)

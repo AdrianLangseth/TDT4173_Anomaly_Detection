@@ -3,6 +3,7 @@ import torch
 from torch.nn import Linear
 import torch.nn.functional as F
 import pyro
+from scipy.stats import entropy
 import pyro.distributions as dist
 from pyro.infer import Trace_ELBO, SVI
 from pyro.optim import SGD, Adam
@@ -24,13 +25,15 @@ class FFNN(torch.nn.Module):
 
 lr = 0.0075
 optim = Adam({"lr": lr})
-num_epochs = 3
-num_samples = 3
-min_certainty = 0.25
+num_epochs = 35
+num_samples = 50
+min_certainty = 0.5
+
+stats_during_training = False
 
 print_area(
     "Model Params", 
-    f"{lr = }, {num_epochs = }, {num_samples = }, {min_certainty = }"
+    f"{training_set_size = }, {test_set_size = }, {lr = }, {num_epochs = }, {num_samples = }, {min_certainty = }"
 )
 
 """
@@ -82,11 +85,12 @@ def train():
         )
         total_epoch_loss = loss / training_set_size
         
-        print_area_start("Epoch info")
-        print_area_content(f"Epoch {i}, Loss: {total_epoch_loss}")
-        accuracy_all()
-        accuracy_exclude_uncertain()
-        print_area_end()
+        if stats_during_training:
+            print_area_start("Epoch info")
+            print_area_content(f"Epoch {i}, Loss: {total_epoch_loss}")
+            accuracy_all()
+            accuracy_exclude_uncertain()
+            print_area_end()
 
     print_area_end()
 
@@ -101,7 +105,7 @@ def get_prediction_confidence(x):
     return np.asarray(confidences)
 
 def predict_all(x):
-    confidences = np.median(get_prediction_confidence(x), 0)
+    confidences = np.mean(get_prediction_confidence(x), 0)
     return np.argmax(confidences, axis=1)
 
 """
@@ -132,9 +136,9 @@ def accuracy_exclude_uncertain(data_loader=val_loader):
         f"{predictions = }, {correct_predictions = }, {accuracy = :.2%}"    
     )
 
-def predict_confident(images, labels):
+def predict_confident(images, labels, min_certainty=min_certainty):
     labels = labels if type(labels) == np.ndarray else labels.view(-1).numpy()
-    confidences = np.median(get_prediction_confidence(images), axis=0)
+    confidences = np.mean(get_prediction_confidence(images), axis=0)
     certain = np.max(confidences, axis=1) > min_certainty
     confident_predictions = np.argmax(confidences[certain, :], axis=1)
     
@@ -145,7 +149,7 @@ def predict_confident(images, labels):
 
 def prediction_data(images, labels):
     labels = labels if type(labels) == np.ndarray else labels.view(-1).numpy()
-    confidences = np.median(get_prediction_confidence(images), axis=0)
+    confidences = np.mean(get_prediction_confidence(images), axis=0)
     certain = np.max(confidences, axis=1) > min_certainty
 
     all_predictions = np.argmax(confidences, axis=1)
@@ -153,5 +157,7 @@ def prediction_data(images, labels):
 
     num_confident = np.sum(confident_predictions != -1)
     num_correct_confident = np.sum(confident_predictions == labels)
+    
+    entropies = entropy(confidences, axis=1)
 
-    return all_predictions, confident_predictions, num_confident, num_correct_confident    
+    return all_predictions, confident_predictions, num_confident, num_correct_confident, entropies 
