@@ -55,5 +55,10 @@ def main():
     # fig.suptitle('Master piiecoo', fontsize=16)
     fig.savefig('Dobbel_plots')
 
+    # Violin plot
+    fig2 = comparison.make_violinplot('Entropy', [1, 1, 1, 2, 2, 2, 3, 3, 3], [
+        1, 2, 3, 1, 2, 3, 1, 2, 3], [2.8, 2.9, 2.2, 2, 1.8, 1.9, 2.2, 2.3, 2.1])
+    fig2.savefig('Entropy')
+
 
 main()
