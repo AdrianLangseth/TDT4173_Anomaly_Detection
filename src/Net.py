@@ -8,7 +8,7 @@ import pyro.distributions as dist
 from pyro.infer import Trace_ELBO, SVI
 from pyro.optim import SGD, Adam
 
-from data import train_loader, test_loader, val_loader, batch_size, training_set_size, test_set_size
+from data import train_loader, test_loader, val_loader, batch_size, training_set_size, test_set_size, training_set_index
 from utils import *
 
 # Base network that we're building on
@@ -19,15 +19,15 @@ class FFNN(torch.nn.Module):
         self.out = Linear(512, 10)
         
     def forward(self, x):
-        hidden = F.relu(self.fc1(x))
+        hidden = F.softplus(self.fc1(x))
         output = self.out(hidden)
         return output
 
 lr = 0.0075
 optim = Adam({"lr": lr})
-num_epochs = 35
+num_epochs = 25 + 10*training_set_index
 num_samples = 50
-min_certainty = 0.5
+min_certainty = 0.45
 
 stats_during_training = False
 
@@ -91,15 +91,23 @@ def train():
             accuracy_all()
             accuracy_exclude_uncertain()
             print_area_end()
-
+        else:
+            print_area_content(f"Epoch {i}, Loss: {total_epoch_loss}")
     print_area_end()
 
 
+sample_models = None
+def get_sample_models():
+    global sample_models
+    if not sample_models:
+        sample_models = [guide(None, None) for _ in range(num_samples)]
+    return sample_models
+    
 """
     Prediction functions
 """
 def get_prediction_confidence(x):
-    sample_models = [guide(None, None) for _ in range(num_samples)]
+    sample_models = get_sample_models()
     yhats = [model(x.view(-1, 28*28)).data for model in sample_models]
     confidences = np.exp(F.log_softmax(torch.stack(yhats), 2))
     return np.asarray(confidences)
@@ -132,8 +140,7 @@ def accuracy_exclude_uncertain(data_loader=val_loader):
 
     print_area(
         "Accuracy With Uncertainty", 
-        f"{items_total = }, {skipped = }, {skip_percent = :.2%}",
-        f"{predictions = }, {correct_predictions = }, {accuracy = :.2%}"    
+        f"{items_total = }, {skipped = }, {skip_percent = :.2%}, {predictions = }, {correct_predictions = }, {accuracy = :.2%}"    
     )
 
 def predict_confident(images, labels, min_certainty=min_certainty):

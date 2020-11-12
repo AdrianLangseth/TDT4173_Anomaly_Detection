@@ -19,7 +19,7 @@ def print_area_end():
     num_tabs = max(0, num_tabs - 1)
     __print("-"*25)
 
-def print_area(area_name, *contents):
+def print_area(area_name, content):
     print_area_start(area_name)
-    all(print_area_content(content) for content in contents)
+    print_area_content(content)
     print_area_end()
