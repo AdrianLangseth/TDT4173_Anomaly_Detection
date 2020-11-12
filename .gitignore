@@ -130,3 +130,7 @@ dmypy.json
 
 # OWN
 .idea
+src/ffnn/FFNN.py
+src/ffnn/FFNN_Dropout
+*.png # for now
+
