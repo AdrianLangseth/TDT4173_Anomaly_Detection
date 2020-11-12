@@ -130,7 +130,6 @@ dmypy.json
 
 # OWN Temporary
 .idea
-*FFNN.py
-*FFNN_Dropout.py
 *.png
+logs
 
