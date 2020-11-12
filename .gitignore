@@ -128,9 +128,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# OWN
+# OWN Temporary
 .idea
-src/ffnn/FFNN.py
-src/ffnn/FFNN_Dropout
+*FFNN.py
+*FFNN_Dropout.py
 *.png
 
