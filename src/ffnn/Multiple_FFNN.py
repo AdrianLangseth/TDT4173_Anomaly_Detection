@@ -3,7 +3,7 @@ import tensorflow.keras.activations as act
 import tensorflow.keras.layers as KL
 import tensorflow.keras.models as KM
 import tensorflow.keras.optimizers as opt
-from time import sleep
+from tensorflow.keras.callbacks import TensorBoard, EarlyStopping
 
 from data_load import load_MNIST_subset
 
@@ -21,12 +21,15 @@ def create_FFNN_Model(size:int):
 
     model = KM.Model(inputs, outputs)
     # model.summary()
+    # tbCallBack = TensorBoard(log_dir='./logs/ffnn/' + str(size), histogram_freq=0, write_graph=True, write_images=True)
+    callback = EarlyStopping(monitor='loss', patience=10)
     model.compile(optimizer=opt.Adam(0.001), loss="sparse_categorical_crossentropy", metrics=["accuracy"])
     bs = int(np.ceil(2**(np.round(np.log2(size/500)))))
-    model.fit(x_train, y_train, batch_size=bs, epochs=10, verbose=0)
+    model.fit(x_train, y_train, batch_size=bs, epochs=1000, verbose=0, callbacks=[callback])
     test_loss, test_acc = model.evaluate(x_test, y_test)
     print(size, ":", bs, test_acc)
     model.save("ffnn_models/model_" + str(size))
+
 
 
 if __name__ == '__main__':

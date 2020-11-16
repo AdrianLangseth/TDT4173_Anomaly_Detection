@@ -3,6 +3,7 @@ import tensorflow.keras.activations as act
 import tensorflow.keras.layers as KL
 import tensorflow.keras.models as KM
 import tensorflow.keras.optimizers as opt
+from tensorflow.keras.callbacks import TensorBoard
 
 from data_load import load_data
 
@@ -15,20 +16,21 @@ dropout_rate_hidden = 0.001
 inputs = KL.Input(shape=(28, 28))
 l = KL.Flatten()(inputs)
 l = KL.Dense(512, activation=act.sigmoid)(l)
-l = KL.Dropout(dropout_rate_hidden)(l)  # Dropout on hidden layer
+l = KL.Dropout(dropout_rate_hidden)(l, training=True)  # Dropout on hidden layer
 outputs = KL.Dense(10, activation=act.softmax)(l)
 
 
 model = KM.Model(inputs, outputs)
 model.summary()
+tbCallBack = TensorBoard(log_dir='./logs', histogram_freq=0, write_graph=True, write_images=True)
 model.compile(optimizer=opt.Adam(0.001), loss="sparse_categorical_crossentropy", metrics=["accuracy"])
 model.fit(x_train, y_train,
-          epochs=10,
+          epochs=1000,
           batch_size=128,
-          verbose=1
+          verbose=1,
+          callbacks=[tbCallBack]
           )
 test_loss, test_acc = model.evaluate(x_test, y_test)
 print("Test Loss: {0} - Test Acc: {1}".format(test_loss, test_acc))
 
 model.save("ffnn_dropout_model")
-

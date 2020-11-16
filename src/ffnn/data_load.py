@@ -39,3 +39,19 @@ def create_nMNIST_dataset(size: int, path="notMNIST_small") -> ndarray:
                 dataset.append(np.asarray(Image.open(path + "/" + letter + "/" + imagename)) / 255.0)
     return np.array(dataset)
 
+
+def create_not_mnist_dataset():
+    dataset = []
+    for imagename in os.listdir("notMNIST_all"):
+        if imagename == ".DS_Store":
+            continue
+        try:
+            dataset.append(np.asarray(Image.open("notMNIST_all/" + imagename)) / 255.0)
+        except (FileNotFoundError, OSError) as e:
+            print(e)
+    return np.array(dataset)
+
+
+if __name__ == "__main__":
+    x = create_not_mnist_dataset()
+    print("hi")

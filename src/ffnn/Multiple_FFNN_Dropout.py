@@ -3,6 +3,7 @@ import tensorflow.keras.activations as act
 import tensorflow.keras.layers as KL
 import tensorflow.keras.models as KM
 import tensorflow.keras.optimizers as opt
+from tensorflow.keras.callbacks import TensorBoard, EarlyStopping
 
 from data_load import load_MNIST_subset
 
@@ -14,18 +15,20 @@ def create_dropout_model(size:int):
     inputs = KL.Input(shape=(28, 28))
     l = KL.Flatten()(inputs)
     l = KL.Dense(512, activation=act.sigmoid)(l)
-    l = KL.Dropout(rate=0.001)(l)  # Dropout on hidden layer
+    l = KL.Dropout(rate=0.001)(l, training=True)  # Dropout on hidden layer
     outputs = KL.Dense(10, activation=act.softmax)(l)
 
 
     model = KM.Model(inputs, outputs)
     # model.summary()
+    callback = EarlyStopping(monitor='loss', patience=10)
     model.compile(optimizer=opt.Adam(0.001), loss="sparse_categorical_crossentropy", metrics=["accuracy"])
     bs = int(np.ceil(2 ** (np.round(np.log2(size / 500)))))
     model.fit(x_train, y_train,
-              epochs=10,
+              epochs=1000,
               batch_size=bs,
-              verbose=0
+              verbose=0,
+              callbacks=[callback]
               )
 
     test_loss, test_acc = model.evaluate(x_test, y_test)
