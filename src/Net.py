@@ -8,7 +8,7 @@ import pyro.distributions as dist
 from pyro.infer import Trace_ELBO, SVI
 from pyro.optim import SGD, Adam
 
-from data import train_loader, test_loader, val_loader, batch_size, training_set_size, test_set_size, training_set_index
+from bnn_data import train_loader, test_loader, val_loader, batch_size, training_set_size, test_set_size, training_set_index
 from utils import *
 
 # Base network that we're building on

@@ -5,8 +5,7 @@ import pprint
 import torch.nn.functional as F
 from pathlib import Path
 
-import data
-from data import training_set_size, normalize, notmnist_loader, batch_size
+from bnn_data import training_set_size, normalize, notmnist_loader, batch_size
 import Net
 from Net import train, num_epochs, accuracy_all, accuracy_exclude_uncertain, lr
 

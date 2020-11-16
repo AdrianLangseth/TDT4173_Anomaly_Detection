@@ -2,7 +2,7 @@ import torch
 import pyro
 import numpy as np
 
-from data import test_loader, test_set_size, notmnist_loader
+from bnn_data import test_loader, test_set_size, notmnist_loader
 from Net import prediction_data, predict_confident
 from main import model_path
 
