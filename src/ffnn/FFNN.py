@@ -4,7 +4,7 @@ import tensorflow.keras.layers as KL
 import tensorflow.keras.models as KM
 import tensorflow.python.keras
 
-from ffnn.data_load import load_data
+from data_load import load_data
 
 (x_train, y_train), (x_test, y_test) = load_data('../../data/MNIST/mnist.npz')
 x_train, x_test = x_train/255.0, x_test/255.0
