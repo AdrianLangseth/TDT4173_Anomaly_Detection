@@ -5,9 +5,8 @@ import pprint
 import torch.nn.functional as F
 from pathlib import Path
 
-from data import training_set_size, normalize, notmnist_loader, batch_size
-import Net
-from Net import train, num_epochs, accuracy_all, accuracy_exclude_uncertain, lr
+from src.bnn.data import training_set_size, normalize, notmnist_loader, batch_size
+from src.bnn.Net import train, num_epochs, accuracy_all, accuracy_exclude_uncertain, lr
 
 normstr = "" if normalize else "_nonorm"
 fname = f"{training_set_size}t_{num_epochs}eps_{lr}lr_{batch_size}bs{normstr}"

@@ -8,8 +8,8 @@ import pyro.distributions as dist
 from pyro.infer import Trace_ELBO, SVI
 from pyro.optim import SGD, Adam
 
-from data import train_loader, test_loader, val_loader, batch_size, training_set_size, test_set_size, training_set_index
-from utils import *
+from src.bnn.data import train_loader, test_loader, val_loader, batch_size, training_set_size, test_set_size, training_set_index
+from src.bnn.utils import *
 
 # Base network that we're building on
 class FFNN(torch.nn.Module):
@@ -33,7 +33,7 @@ stats_during_training = False
 
 print_area(
     "Model Params", 
-    f"{training_set_size = }, {test_set_size = }, {lr = }, {num_epochs = }, {num_samples = }, {min_certainty = }"
+    f"training_set_size = {training_set_size}, test_set_size = {test_set_size}, lr {lr}, num_epochs = {num_epochs}, num_samples = {num_samples}, min_certainty = {min_certainty}"
 )
 
 """
@@ -125,7 +125,7 @@ def accuracy_all(data_loader=val_loader):
         for images, labels in data_loader
     )
     accuracy = num_correct / len(data_loader.dataset)
-    print_area("Forced Prediction Accuracy", f"{accuracy = :.2%}")
+    print_area("Forced Prediction Accuracy", f"{accuracy:.2%}")
 
 def accuracy_exclude_uncertain(data_loader=val_loader):
     items_total = len(data_loader.dataset)
@@ -140,7 +140,7 @@ def accuracy_exclude_uncertain(data_loader=val_loader):
 
     print_area(
         "Accuracy With Uncertainty", 
-        f"{items_total = }, {skipped = }, {skip_percent = :.2%}, {predictions = }, {correct_predictions = }, {accuracy = :.2%}"    
+        f"items_total = {items_total}, skipped = {skipped}, skip_percent = {skip_percent:.2%}, predictions = {predictions}, correct_predictions = {correct_predictions}, accuracy = {accuracy:.2%}"
     )
 
 def predict_confident(images, labels, min_certainty=min_certainty):

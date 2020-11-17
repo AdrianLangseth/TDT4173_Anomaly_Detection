@@ -6,7 +6,7 @@ import seaborn as sns
 sns.set_style('whitegrid')
 
 
-def make_line_chart(ax: axes.Axes, x: list, y: list, label: list, x_label: str, y_label: str, titel: str):
+def make_line_chart(ax: axes.Axes, x: np.ndarray or list, y: np.ndarray or list, label: list, x_label: str, y_label: str, titel: str):
     for i in range(len(y)):
         ax.plot(x, y[i], label=label[i])
     ax.set_title(titel)

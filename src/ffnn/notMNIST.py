@@ -1,7 +1,7 @@
 from PIL import Image
 import numpy as np
 import tensorflow.keras as KK
-from data_load import load_MNIST_subset, create_not_mnist_dataset, create_nMNIST_dataset
+from src.ffnn.data_load import load_MNIST_subset, create_not_mnist_dataset, create_nMNIST_dataset
 import os
 import scipy.stats as stats
 from numpy.core._multiarray_umath import ndarray
