@@ -1,25 +1,7 @@
-num_tabs = 0
+import torch
 
-def __print(*args, **kwargs):
-    print("\t"*num_tabs, end="")
-    print(*args, **kwargs)
-
-def print_area_start(area_name):
-    print()
-    __print("-"*5, area_name, "-"*5)
-    print()
-    global num_tabs 
-    num_tabs += 1
-
-def print_area_content(content):
-    __print(content)
-
-def print_area_end():
-    global num_tabs
-    num_tabs = max(0, num_tabs - 1)
-    __print("-"*25)
-
-def print_area(area_name, content):
-    print_area_start(area_name)
-    print_area_content(content)
-    print_area_end()
+def get_loader_data(data_loader):
+    image_batches, label_batches = zip(*data_loader)
+    images = torch.cat(tuple(batch.view(-1, 28*28) for batch in image_batches), dim=0)
+    labels = torch.cat(tuple(batch.view(-1) for batch in label_batches), dim=0).numpy()
+    return images, labels
