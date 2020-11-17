@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# OWN Temporary
+.idea
+*.png
+logs
+
