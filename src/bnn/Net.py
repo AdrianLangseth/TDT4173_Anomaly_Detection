@@ -6,10 +6,13 @@ import pyro
 from scipy.stats import entropy
 import pyro.distributions as dist
 from pyro.infer import Trace_ELBO, SVI
-from pyro.optim import SGD, Adam
+from pathlib import Path
+import warnings
 
-from data import train_loader, test_loader, val_loader, batch_size, training_set_size, test_set_size, training_set_index
-from utils import *
+import data
+from utils import get_loader_data
+
+warnings.filterwarnings("ignore", category=FutureWarning) # suppress deprecation warnings for pyro.random_module
 
 # Base network that we're building on
 class FFNN(torch.nn.Module):
@@ -23,23 +26,8 @@ class FFNN(torch.nn.Module):
         output = self.out(hidden)
         return output
 
-lr = 0.0075
-optim = Adam({"lr": lr})
-num_epochs = 25 + 10*training_set_index
-num_samples = 50
-min_certainty = 0.45
-
-stats_during_training = False
-
-print_area(
-    "Model Params", 
-    f"{training_set_size = }, {test_set_size = }, {lr = }, {num_epochs = }, {num_samples = }, {min_certainty = }"
-)
-
-"""
-    BNN Model setup
-"""
 net = FFNN()
+sample_models = None
 log_softmax = torch.nn.LogSoftmax(dim=1)
 softplus = torch.nn.Softplus()
 
@@ -71,43 +59,37 @@ def guide(x_data=None, y_data=None):
     }
     return pyro.random_module("module", net, priors)()
 
+def load_model(model_path):
+    print("attempting to load model:", model_path)
+    pyro.clear_param_store()
+    if Path(model_path).is_file():
+        print("found pretrained model!")
+        pyro.get_param_store().load(model_path)
+    else:
+        print("Found no model. Training one now...")
+        train_model()
+        pyro.get_param_store().save(model_path)
+    
+    global sample_models
+    sample_models = [guide(None, None) for _ in range(num_samples)]
 
 """
     Model training
 """
-svi = SVI(model, guide, optim, loss=Trace_ELBO())
-def train():
-    print_area_start("Training")
+def train_model():
+    svi = SVI(model, guide, optim, loss=Trace_ELBO())
     for i in range(num_epochs):
         loss = sum(
             svi.step(X.view(-1, 28*28), y) 
-            for X, y in train_loader
+            for X, y in data.train_loader
         )
-        total_epoch_loss = loss / training_set_size
-        
-        if stats_during_training:
-            print_area_start("Epoch info")
-            print_area_content(f"Epoch {i}, Loss: {total_epoch_loss}")
-            accuracy_all()
-            accuracy_exclude_uncertain()
-            print_area_end()
-        else:
-            print_area_content(f"Epoch {i}, Loss: {total_epoch_loss}")
-    print_area_end()
-
-
-sample_models = None
-def get_sample_models():
-    global sample_models
-    if not sample_models:
-        sample_models = [guide(None, None) for _ in range(num_samples)]
-    return sample_models
+        total_epoch_loss = loss / len(data.train_loader.dataset)
+        print("epoch:", i, "loss:", loss)
     
 """
     Prediction functions
 """
 def get_prediction_confidence(x):
-    sample_models = get_sample_models()
     yhats = [model(x.view(-1, 28*28)).data for model in sample_models]
     confidences = np.exp(F.log_softmax(torch.stack(yhats), 2))
     return np.asarray(confidences)
@@ -119,32 +101,19 @@ def predict_all(x):
 """
     Accuracy functions (prediction interpreters)
 """
-def accuracy_all(data_loader=val_loader):
-    num_correct = sum(
-        np.sum(predict_all(images) == labels.numpy())
-        for images, labels in data_loader
-    )
-    accuracy = num_correct / len(data_loader.dataset)
-    print_area("Forced Prediction Accuracy", f"{accuracy = :.2%}")
+def accuracy_all():
+    images, labels = get_loader_data(data.val_loader)
+    return np.sum(predict_all(images) == labels) / len(labels)
 
-def accuracy_exclude_uncertain(data_loader=val_loader):
-    items_total = len(data_loader.dataset)
-    correct_predictions = predictions = 0
-    for images, labels in data_loader:
-        batch_correct_predictions, batch_predictions = predict_confident(images, labels)
-        correct_predictions += batch_correct_predictions
-        predictions += batch_predictions
-    accuracy = correct_predictions / predictions if predictions else 0
-    skipped = items_total - predictions
-    skip_percent = skipped / items_total
+def accuracy_exclude_uncertain():
+    images, labels = get_loader_data(data.val_loader)
+    n_predictions, n_correct_predictions = predict_confident(images, labels)
+    
+    accuracy = n_correct_predictions / n_predictions if n_predictions else 0
+    skip_percent = 1 - n_predictions / len(labels)
+    return accuracy, skip_percent
 
-    print_area(
-        "Accuracy With Uncertainty", 
-        f"{items_total = }, {skipped = }, {skip_percent = :.2%}, {predictions = }, {correct_predictions = }, {accuracy = :.2%}"    
-    )
-
-def predict_confident(images, labels, min_certainty=min_certainty):
-    labels = labels if type(labels) == np.ndarray else labels.view(-1).numpy()
+def predict_confident(images, labels):
     confidences = np.mean(get_prediction_confidence(images), axis=0)
     certain = np.max(confidences, axis=1) > min_certainty
     confident_predictions = np.argmax(confidences[certain, :], axis=1)
@@ -152,7 +121,7 @@ def predict_confident(images, labels, min_certainty=min_certainty):
     num_confident = np.sum(certain)
     num_correct = np.sum(confident_predictions == labels[certain])
 
-    return num_correct, num_confident
+    return num_confident, num_correct
 
 def prediction_data(images, labels):
     labels = labels if type(labels) == np.ndarray else labels.view(-1).numpy()
