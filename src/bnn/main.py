@@ -3,15 +3,13 @@ import os
 from pathlib import Path
 
 import Net
-from data import setup_train_val_loaders
+import data
 
 
-training_set_sizes = [50_000, 19_000, 7_000, 2_500, 1_000]
-
-models_dir = os.path.join(Path(__file__).parents[2], os.path.join("models", "bnn"))
+models_dir = os.path.join(Path(os.path.abspath(__file__)).parents[2], os.path.join("models", "bnn"))
 def setup_model(training_set_index=0):
-    training_set_size = training_set_sizes[training_set_index]
-    setup_train_val_loaders(training_set_size)
+    training_set_size = data.training_set_sizes[training_set_index]
+    data.set_train_size(training_set_size)
     
     lr = 0.0075
     Net.optim = pyro.optim.Adam({"lr": lr})
@@ -25,7 +23,7 @@ def setup_model(training_set_index=0):
 
 
 if __name__ == '__main__':
-    for i in range(len(training_set_sizes)):
+    for i in range(len(data.training_set_sizes)):
         setup_model(i)
         print(Net.accuracy_all())
         print(Net.accuracy_exclude_uncertain())

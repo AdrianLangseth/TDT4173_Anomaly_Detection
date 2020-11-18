@@ -10,16 +10,18 @@ from pathlib import Path
 import warnings
 
 import data
-from utils import get_loader_data
 
 warnings.filterwarnings("ignore", category=FutureWarning) # suppress deprecation warnings for pyro.random_module
 
 # Base network that we're building on
 class FFNN(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, use_cuda=True):
         super().__init__()
         self.fc1 = Linear(28*28, 512)
         self.out = Linear(512, 10)
+        if use_cuda:
+            self.cuda()
+        self.use_cuda = use_cuda
         
     def forward(self, x):
         hidden = F.softplus(self.fc1(x))
@@ -76,37 +78,40 @@ def load_model(model_path):
 """
     Model training
 """
-def train_model():
+def train_model(use_cuda=True):
     svi = SVI(model, guide, optim, loss=Trace_ELBO())
     for i in range(num_epochs):
         loss = sum(
-            svi.step(X.view(-1, 28*28), y) 
+            svi.step(
+                X.view(-1, 28*28) if not use_cuda else X.view(-1, 28*28).cuda(),
+                y
+            ) 
             for X, y in data.train_loader
         )
         total_epoch_loss = loss / len(data.train_loader.dataset)
-        print("epoch:", i, "loss:", loss)
+        print("epoch:", i, "loss:", total_epoch_loss)
     
 """
     Prediction functions
 """
 def get_prediction_confidence(x):
     yhats = [model(x.view(-1, 28*28)).data for model in sample_models]
-    confidences = np.exp(F.log_softmax(torch.stack(yhats), 2))
-    return np.asarray(confidences)
+    confidences = torch.exp(F.log_softmax(torch.stack(yhats), 2))
+    return confidences
 
 def predict_all(x):
-    confidences = np.mean(get_prediction_confidence(x), 0)
-    return np.argmax(confidences, axis=1)
+    confidences = torch.mean(get_prediction_confidence(x), 0)
+    return torch.argmax(confidences, axis=1)
 
 """
     Accuracy functions (prediction interpreters)
 """
 def accuracy_all():
-    images, labels = get_loader_data(data.val_loader)
-    return np.sum(predict_all(images) == labels) / len(labels)
+    images, labels = data.MNISTData("val").data[:]
+    return torch.sum(predict_all(images) == labels) / len(labels)
 
 def accuracy_exclude_uncertain():
-    images, labels = get_loader_data(data.val_loader)
+    images, labels = data.MNISTData("val").data[:]
     n_predictions, n_correct_predictions = predict_confident(images, labels)
     
     accuracy = n_correct_predictions / n_predictions if n_predictions else 0
@@ -114,12 +119,12 @@ def accuracy_exclude_uncertain():
     return accuracy, skip_percent
 
 def predict_confident(images, labels):
-    confidences = np.mean(get_prediction_confidence(images), axis=0)
-    certain = np.max(confidences, axis=1) > min_certainty
-    confident_predictions = np.argmax(confidences[certain, :], axis=1)
+    confidences = torch.mean(get_prediction_confidence(images), axis=0)
+    certain = torch.max(confidences, axis=1).values > min_certainty
+    confident_predictions = torch.argmax(confidences[certain, :], axis=1)
     
-    num_confident = np.sum(certain)
-    num_correct = np.sum(confident_predictions == labels[certain])
+    num_confident = torch.sum(certain)
+    num_correct = torch.sum(confident_predictions == labels[certain])
 
     return num_confident, num_correct
 
