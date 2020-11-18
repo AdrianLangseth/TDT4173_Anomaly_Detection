@@ -34,10 +34,9 @@ class NotMNISTFolder(ImageFolder):
 
     def __init__(self):
         super().__init__(notmnist_path)
-        self.data = np.array(
-            [np.asarray(self.loader(path)) for path, _ in self.samples],
-            dtype=np.float32
-        )
+        self.data = torch.cat(tuple(
+            transform(Image.open(path)) for path, _ in self.samples
+        ))
         self.targets = np.array(self.targets, dtype=np.int8) + ord("A")
 
     def __len__(self):
