@@ -27,7 +27,7 @@ def load_MNIST_subset(size: int) -> tuple:
         x_train, x_test = x_train/255.0, x_test/255.0
         return x_train, y_train, x_test, y_test
 
-
+######### DEPRECATED ########
 def create_nMNIST_dataset(size: int, path="notMNIST_small") -> ndarray:
     dataset = []
 
@@ -38,7 +38,7 @@ def create_nMNIST_dataset(size: int, path="notMNIST_small") -> ndarray:
                     break
                 dataset.append(np.asarray(Image.open(path + "/" + letter + "/" + imagename)) / 255.0)
     return np.array(dataset)
-
+#############################
 
 def create_not_mnist_dataset():
     dataset = []
@@ -52,6 +52,35 @@ def create_not_mnist_dataset():
     return np.array(dataset)
 
 
+def create_not_mnist_dict():
+    dataset = {}
+    for imagename in os.listdir("notMNIST_all"):
+        if imagename == ".DS_Store":
+            continue
+        try:
+            if ord(imagename[0]) in dataset.keys():
+                dataset[ord(imagename[0])].append(np.asarray(Image.open("notMNIST_all/" + imagename)) / 255.0)
+            else:
+                dataset[ord(imagename[0])] = [(np.asarray(Image.open("notMNIST_all/" + imagename)) / 255.0)]
+        except (FileNotFoundError, OSError) as e:
+            print(e)
+    return np.array(dataset)
+
+
+def create_not_mnist_doubleset():
+    x = []
+    y = []
+    for imagename in os.listdir("notMNIST_all"):
+        if imagename == ".DS_Store":
+            continue
+        try:
+            x.append(np.asarray(Image.open("notMNIST_all/" + imagename)) / 255.0)
+            y.append(ord(imagename[0]))
+        except (FileNotFoundError, OSError) as e:
+            print(e)
+    return np.array(x), np.array(y)
+
+
 if __name__ == "__main__":
-    x = create_not_mnist_dataset()
-    print("hi")
+    x, y = create_not_mnist_doubleset()
+    pass

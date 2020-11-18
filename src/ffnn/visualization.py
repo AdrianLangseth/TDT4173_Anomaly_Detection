@@ -13,16 +13,19 @@ pred = mnist()
 y_true_mnist = pred['y']
 y_pred_ffnn_mnist = pred['ffnn_models/model_50000']
 y_pred_dropout_mnist = pred['dropout_models/model_50000']
+bnn = bnn_vis.get_prediction_data(0)
 
 
 # Accuracy
 def print_accuracies():
     acc_ffnn = metrics.compute_accuracy(y_true_mnist, y_pred_ffnn_mnist)
     acc_dropout = metrics.compute_accuracy(y_true_mnist, y_pred_dropout_mnist)
-    acc_bnn = metrics.compute_accuracy(bnn_vis.labels, bnn_vis.confident_predictions)
+    acc_bnn = bnn["accuracy"]
+    acc_conf_bnn = bnn["confident_accuracy"]
     print('Accuracy, FFNN:', round(acc_ffnn, 2))
     print('Accuracy, dropout:', round(acc_dropout, 2))
     print('Accuracy, BNN:', round(acc_bnn, 2))
+    print('Confident accuracy, BNN:', round(acc_conf_bnn, 2))
 
 
 # Precision, recall, F1-score, and support
@@ -34,15 +37,15 @@ def print_reports():
         y_true_mnist, y_pred_dropout_mnist, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], 'Dropout')
     metrics.print_classification_report(
-        bnn_vis.labels, bnn_vis.confident_predictions, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        bnn_vis.mnist_labels, bnn["all_predictions"], [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         ['-1', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], 'BNN')
 
 
 # Confusion matrix
 def make_confusion_matrices():
     fig = metrics.make_multiple_heatmaps(
-        [y_true_mnist, y_true_mnist, bnn_vis.labels],
-        [y_pred_ffnn_mnist, y_pred_dropout_mnist, bnn_vis.confident_predictions],
+        [y_true_mnist, y_true_mnist, bnn_vis.mnist_labels],
+        [y_pred_ffnn_mnist, y_pred_dropout_mnist, bnn["all_predictions"]],
         [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9], ['FFNN', 'FFNN w/dropout', 'BNN'], 20, 6, 1, 3)
     fig.savefig('Heatmaps')
 
@@ -71,13 +74,13 @@ def make_accuracy_line_chart():
 def make_entropy_plots():
     fig = comparison.make_violinplot('Entropy', test['f50000'],
                                       test['d50000'],
-                                      bnn_vis.entropies)
+                                      bnn["entropies"])
     fig.savefig('Entropy')
 
 
 if __name__ == "__main__":
-    # print_accuracies()
-    # print_reports()
-    # make_accuracy_line_chart()
-    # make_confusion_matrices()
+    print_accuracies()
+    print_reports()
+    make_accuracy_line_chart()
+    make_confusion_matrices()
     make_entropy_plots()
