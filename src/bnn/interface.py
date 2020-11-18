@@ -25,7 +25,7 @@ def get_prediction_data(train_set_i=0, notmnist=False):
         "entropies": entropies,
         "num_skipped": num_items - num_confident_predictions,
         "skip_percent": (num_items - num_confident_predictions) / num_items,
-        "accuracy": np.sum(all_predictions == labs) / num_items,
+        "accuracy": torch.sum(all_predictions == labs).item() / num_items,
         "confident_accuracy": num_correct_predictions / num_confident_predictions
     }
 

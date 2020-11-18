@@ -10,25 +10,23 @@ from pathlib import Path
 import warnings
 
 import data
+from data import device
 
 warnings.filterwarnings("ignore", category=FutureWarning) # suppress deprecation warnings for pyro.random_module
 
 # Base network that we're building on
 class FFNN(torch.nn.Module):
-    def __init__(self, use_cuda=True):
+    def __init__(self):
         super().__init__()
         self.fc1 = Linear(28*28, 512)
         self.out = Linear(512, 10)
-        if use_cuda:
-            self.cuda()
-        self.use_cuda = use_cuda
         
     def forward(self, x):
         hidden = F.softplus(self.fc1(x))
         output = self.out(hidden)
         return output
 
-net = FFNN()
+net = FFNN().to(device)
 sample_models = None
 log_softmax = torch.nn.LogSoftmax(dim=1)
 softplus = torch.nn.Softplus()
@@ -66,7 +64,7 @@ def load_model(model_path):
     pyro.clear_param_store()
     if Path(model_path).is_file():
         print("found pretrained model!")
-        pyro.get_param_store().load(model_path)
+        pyro.get_param_store().load(model_path, map_location=device)
     else:
         print("Found no model. Training one now...")
         train_model()
@@ -78,14 +76,11 @@ def load_model(model_path):
 """
     Model training
 """
-def train_model(use_cuda=True):
+def train_model():
     svi = SVI(model, guide, optim, loss=Trace_ELBO())
     for i in range(num_epochs):
         loss = sum(
-            svi.step(
-                X.view(-1, 28*28) if not use_cuda else X.view(-1, 28*28).cuda(),
-                y
-            ) 
+            svi.step(X, y) 
             for X, y in data.train_loader
         )
         total_epoch_loss = loss / len(data.train_loader.dataset)
@@ -95,7 +90,7 @@ def train_model(use_cuda=True):
     Prediction functions
 """
 def get_prediction_confidence(x):
-    yhats = [model(x.view(-1, 28*28)).data for model in sample_models]
+    yhats = [model(x).data for model in sample_models]
     confidences = torch.exp(F.log_softmax(torch.stack(yhats), 2))
     return confidences
 
@@ -108,7 +103,8 @@ def predict_all(x):
 """
 def accuracy_all():
     images, labels = data.MNISTData("val").data[:]
-    return torch.sum(predict_all(images) == labels) / len(labels)
+    accuracy = torch.sum(predict_all(images) == labels) / len(labels)
+    return accuracy
 
 def accuracy_exclude_uncertain():
     images, labels = data.MNISTData("val").data[:]
@@ -129,16 +125,15 @@ def predict_confident(images, labels):
     return num_confident, num_correct
 
 def prediction_data(images, labels):
-    labels = labels if type(labels) == np.ndarray else labels.view(-1).numpy()
-    confidences = np.mean(get_prediction_confidence(images), axis=0)
-    certain = np.max(confidences, axis=1) > min_certainty
+    confidences = torch.mean(get_prediction_confidence(images), axis=0)
+    certain = torch.max(confidences, axis=1).values > min_certainty
 
-    all_predictions = np.argmax(confidences, axis=1)
-    confident_predictions = np.where(certain, all_predictions, -1)
+    all_predictions = torch.argmax(confidences, axis=1)
+    confident_predictions = torch.where(certain, all_predictions, -1)
 
-    num_confident = np.sum(confident_predictions != -1)
-    num_correct_confident = np.sum(confident_predictions == labels)
+    num_confident = torch.sum(confident_predictions != -1)
+    num_correct_confident = torch.sum(confident_predictions == torch.tensor(labels))
     
-    entropies = entropy(confidences, axis=1)
+    entropies = entropy(confidences.cpu(), axis=1)
 
-    return all_predictions, confident_predictions, num_confident, num_correct_confident, entropies 
+    return all_predictions, confident_predictions, num_confident.item(), num_correct_confident.item(), entropies 

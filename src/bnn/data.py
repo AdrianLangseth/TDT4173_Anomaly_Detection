@@ -11,17 +11,20 @@ from pathlib import Path
 from PIL import Image
 
 
+use_cuda = torch.cuda.is_available()
+device = torch.device("cuda" if use_cuda else "cpu")
+
 batch_size = 256
 training_set_sizes = [50_000, 19_000, 7_000, 2_500, 1_000]
 data_dir = os.path.join(Path(os.path.abspath(__file__)).parents[2], "data")
 class MNISTData:
     train_data, val_data, test_data = None, None, None
 
-    def __init__(self, mode, size=None, use_cuda=True):
+    def __init__(self, mode, size=None):
         def transform(dataset):
-            x = dataset.data.float() / 255.
+            x = dataset.data.float().view(-1, 28*28) / 255.
             y = dataset.targets
-            return TensorDataset(x.cuda(), y.cuda()) if use_cuda else TensorDataset(x, y)
+            return TensorDataset(x.to(device), y.to(device))
 
         assert mode in ("train", "val", "test")
         if mode in ("train", "val"):
@@ -37,14 +40,17 @@ class MNISTData:
 
     def __len__(self):
         return getattr(self, "size", len(self.data))
+    
+    def __getitem__(self, key):
+        return self.data[key]
 
     def loader(self):
-        return DataLoader(self.data, batch_size=batch_size, shuffle=True)
+        return DataLoader(self, batch_size=batch_size, shuffle=True)
 
 
-def load_im(path):
+def get_im_data(path):
     with open(path, 'rb') as f:
-        return np.array(Image.open(f), dtype=np.float32)
+        return np.array(Image.open(f), dtype=np.float32).flatten()
 
 notmnist_path = os.path.join(data_dir, "notMNIST_small")
 class NotMNISTData(ImageFolder):
@@ -52,10 +58,12 @@ class NotMNISTData(ImageFolder):
 
     def __init__(self):
         super().__init__(notmnist_path)
-        self.data = np.array([
-           load_im(path) for path, _ in self.samples
+        self.data = torch.stack([
+           torch.tensor(get_im_data(path))
+           for path, _ in self.samples
         ]) / 255.
-        self.targets = np.array(self.targets, dtype=np.int8) + ord("A")
+        self.targets = torch.tensor(self.targets, dtype=torch.int8) + ord("A")
+        self.data, self.targets = self.data.to(device), self.targets.to(device)
 
     def __len__(self):
         return self.size
