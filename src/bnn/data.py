@@ -5,22 +5,23 @@ from torch.utils.data import DataLoader, random_split, sampler
 from torchvision.datasets.folder import ImageFolder, default_loader
 import numpy as np
 import os
+from pathlib import Path
 from PIL import Image
-
 
 batch_size = 256
 transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.0, ), (1.0, ))
 ])
-test_set = torchvision.datasets.MNIST(root='../../data', train=False, download=True, transform=transform)
+data_dir = os.path.join(Path(__file__).parents[2], "data")
+test_set = torchvision.datasets.MNIST(root=data_dir, train=False, download=True, transform=transform)
 test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=True)
 train_loader, val_loader = None, None
 
 
 def setup_train_val_loaders(training_set_size, val_set_size=10_000):
     train_set, val_set, _ = random_split(
-        torchvision.datasets.MNIST(root='../../data', train=True, download=True, transform=transform),
+        torchvision.datasets.MNIST(root=data_dir, train=True, download=True, transform=transform),
         [training_set_size, val_set_size, 60_000 - (training_set_size + val_set_size)]
     )
     global train_loader, val_loader
@@ -28,7 +29,7 @@ def setup_train_val_loaders(training_set_size, val_set_size=10_000):
     val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
 
 
-notmnist_path = "../../data/notMNIST_small/"
+notmnist_path = os.path.join(data_dir, "notMNIST_small")
 class NotMNISTFolder(ImageFolder):
     size = 10_000
 

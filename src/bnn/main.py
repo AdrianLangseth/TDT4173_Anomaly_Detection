@@ -1,4 +1,6 @@
 import pyro
+import os
+from pathlib import Path
 
 import Net
 from data import setup_train_val_loaders
@@ -6,7 +8,7 @@ from data import setup_train_val_loaders
 
 training_set_sizes = [50_000, 19_000, 7_000, 2_500, 1_000]
 
-
+models_dir = os.path.join(Path(__file__).parents[2], os.path.join("models", "bnn"))
 def setup_model(training_set_index=0):
     training_set_size = training_set_sizes[training_set_index]
     setup_train_val_loaders(training_set_size)
@@ -17,8 +19,8 @@ def setup_model(training_set_index=0):
     Net.num_samples = 50
     Net.min_certainty = 0.45
 
-    model_name = f"{training_set_size}_train"
-    model_path = f"../../models/bnn/{model_name}.model"
+    model_name = f"{training_set_size}_train.model"
+    model_path = os.path.join(models_dir, model_name)
     Net.load_model(model_path)
 
 
