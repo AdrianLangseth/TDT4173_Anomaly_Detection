@@ -18,18 +18,22 @@ def create_FFNN_Model(size:int):
     l = KL.Dense(512, activation=act.sigmoid)(l)
     outputs = KL.Dense(10, activation=act.softmax)(l)
 
-
     model = KM.Model(inputs, outputs)
     # model.summary()
     # tbCallBack = TensorBoard(log_dir='./logs/ffnn/' + str(size), histogram_freq=0, write_graph=True, write_images=True)
-    callback = EarlyStopping(monitor='loss', patience=10)
+    callback = EarlyStopping(monitor='loss', patience=15)
     model.compile(optimizer=opt.Adam(0.001), loss="sparse_categorical_crossentropy", metrics=["accuracy"])
     bs = int(np.ceil(2**(np.round(np.log2(size/500)))))
-    model.fit(x_train, y_train, batch_size=bs, epochs=1000, verbose=0, callbacks=[callback])
+    model.fit(x_train, y_train,
+              batch_size=bs,
+              epochs=1000,
+              verbose=0,
+              callbacks=[callback]
+              )
+
     test_loss, test_acc = model.evaluate(x_test, y_test)
     print(size, ":", bs, test_acc)
     model.save("ffnn_models/model_" + str(size))
-
 
 
 if __name__ == '__main__':

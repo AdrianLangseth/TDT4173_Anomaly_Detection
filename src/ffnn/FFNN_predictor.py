@@ -7,7 +7,16 @@ from src.ffnn.data_load import load_MNIST
 
 def model_predictor(model_repo_path: str, x_test_values: ndarray, y_test_values: ndarray) -> (ndarray, ndarray):
     model = KK.models.load_model(model_repo_path)
-    predictions = model.predict(x_test_values)
+    dropout_runs = 100
+    if model_repo_path.split("/")[0] == "dropout_models":
+        pred = np.zeros((len(x_test_values), 10))
+        for i in range(dropout_runs):
+            temp_predict = model.predict(x_test_values)
+            for idx, n in enumerate(np.argmax(temp_predict, axis=1)):
+                pred[idx][n] += 1
+        predictions = pred / dropout_runs
+    else:
+        predictions = model.predict(x_test_values)
     return predictions, y_test_values
 
 
@@ -24,14 +33,24 @@ def test_nMNIST_prediction(model_repo_path: str, data: ndarray):
 
 def train_MNIST_entropy():
     x, y, _, _ = load_MNIST()
+    x, y = x[:10000], y[:10000]
     model_paths = ["ffnn_models", "dropout_models"]
+    dropout_runs = 100
     d = {}
     sizes = [1000, 2500, 7000, 19000, 50000]
     for folder in model_paths:
         for size in sizes:
             path = folder + "/model_" + str(size)
             model = KK.models.load_model(path)
-            pred = model.predict(x[:size])
+            if folder == "dropout_models":
+                pred = np.zeros((len(x), 10))
+                for i in range(dropout_runs):
+                    temp_predict = model.predict(x)
+                    for idx, n in enumerate(np.argmax(temp_predict, axis=1)):
+                        pred[idx][n] += 1
+                pred = pred / dropout_runs
+            else:
+                pred = model.predict(x)
             model_entropy = entropy(pred, axis=1)
             d[folder[0] + str(size)] = model_entropy
     return d
@@ -40,13 +59,22 @@ def train_MNIST_entropy():
 def test_MNIST_entropy():
     _, _, x_test, y_test = load_MNIST()
     model_paths = ["ffnn_models", "dropout_models"]
+    dropout_runs = 100
     d = {}
     sizes = [1000, 2500, 7000, 19000, 50000]
     for folder in model_paths:
         for size in sizes:
             path = folder + "/model_" + str(size)
             model = KK.models.load_model(path)
-            pred = model.predict(x_test)
+            if folder == "dropout_models":
+                pred = np.zeros((len(x_test), 10))
+                for i in range(dropout_runs):
+                    temp_predict = model.predict(x_test)
+                    for idx, n in enumerate(np.argmax(temp_predict, axis=1)):
+                        pred[idx][n] += 1
+                pred = pred / dropout_runs
+            else:
+                pred = model.predict(x_test)
             model_entropy = entropy(pred, axis=1)
             d[folder[0] + str(size)] = model_entropy
     return d
@@ -69,14 +97,4 @@ def get_all_predictions():
 
 
 if __name__ == '__main__':
-    # x_train, y_train, x_test, y_test = load_MNIST()
-    # pred, y = model_predictor('ffnn_models/model_1000', x_test[0:10], y_test[0:10])
-    # print(np.argmax(pred, axis=1))
-    # print(y)
-    # pred, fasit = model_predictor('ffnn_models/model_50000')
-    # x = np.equal(pred, fasit)
-    # print(sum(x)/len(pred))
-    # get_int_predictions("ffnn_models/model_50000", load_MNIST)
-    # x = test_MNIST_entropy()
-    # print(2)
     pass
