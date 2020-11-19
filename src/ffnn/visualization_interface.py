@@ -1,5 +1,6 @@
 from src.ffnn.notMNIST import test_notmnist_entropy_for_all
 from src.ffnn.FFNN_predictor import get_all_predictions, train_MNIST_entropy, test_MNIST_entropy
+import time
 
 
 def entropy_not_mnist() -> dict:
@@ -39,8 +40,17 @@ def mnist() -> dict:
 
 
 if __name__ == "__main__":
+    t0 = time.time()
     train = entropy_mnist_train()
+    t1 = time.time()
+    print("Entropi train: " + str(t1-t0))
     test = entropy_mnist_test()
+    t2 = time.time()
+    print("Entropi test: " + str(t2-t1))
     notmnist = entropy_not_mnist()
+    t3 = time.time()
+    print("Entropi not_mnist: " + str(t3-t2))
     pred = mnist()
-    pass
+    t4 = time.time()
+    print("Predictions: " + str(t4-t3))
+    print("Total: " + str(t4-t0))
