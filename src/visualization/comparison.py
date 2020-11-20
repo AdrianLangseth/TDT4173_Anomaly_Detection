@@ -34,6 +34,7 @@ def make_violinplot_for_comparing_models(title: str, ffnn_data: np.ndarray or li
     fig, ax = plt.subplots(1, 1)
     sns.violinplot(
         data=df, palette={'FFNN': colors[2], 'FFNN w/dropout': colors[3], 'BNN': colors[4]}, ax=ax)
+    plt.xlabel('Model')
     plt.ylabel('Entropy')
     fig.suptitle(title, fontsize=16)
     return fig
@@ -49,6 +50,7 @@ def make_violinplot_for_comparing_sets(title: str, train_data: np.ndarray or lis
     fig, ax = plt.subplots(1, 1, figsize=(10, 5))
     sns.violinplot(
         data=df, palette={'Training set': colors[2], 'Test set': colors[3], 'Anomalies set': colors[4]}, ax=ax)
+    plt.xlabel('Set')
     plt.ylabel('Entropy')
     fig.suptitle(title, fontsize=16)
     return fig
