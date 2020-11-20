@@ -21,6 +21,7 @@ class MNISTData:
     train_data, val_data, test_data = None, None, None
 
     def __init__(self, mode, size=None):
+
         def transform(dataset):
             x = dataset.data.float().view(-1, 28*28) / 255.
             y = dataset.targets
@@ -48,16 +49,17 @@ class MNISTData:
         return DataLoader(self, batch_size=batch_size, shuffle=True)
 
 
-def get_im_data(path):
-    with open(path, 'rb') as f:
-        return np.array(Image.open(f), dtype=np.float32).flatten()
-
 notmnist_path = os.path.join(data_dir, "notMNIST_small")
 class NotMNISTData(ImageFolder):
     size = 10_000
 
     def __init__(self):
         super().__init__(notmnist_path)
+
+        def get_im_data(path):
+            with open(path, 'rb') as f:
+                return np.array(Image.open(f), dtype=np.float32).flatten()
+
         self.data = torch.stack([
            torch.tensor(get_im_data(path))
            for path, _ in self.samples
