@@ -3,8 +3,8 @@ import pyro
 import os
 from pathlib import Path
 
-import Net
-import data
+import src.bnn.Net as Net
+import src.bnn.data as data
 
 
 models_dir = os.path.join(Path(os.path.abspath(__file__)).parents[2], os.path.join("models", "bnn"))

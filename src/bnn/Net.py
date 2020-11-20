@@ -9,8 +9,8 @@ from pyro.infer import Trace_ELBO, SVI
 from pathlib import Path
 import warnings
 
-import data
-from data import device
+import src.bnn.data as data
+from src.bnn.data import device
 
 warnings.filterwarnings("ignore", category=FutureWarning) # suppress deprecation warnings for pyro.random_module
 
@@ -129,7 +129,7 @@ def prediction_data(images, labels):
     certain = torch.max(confidences, axis=1).values > min_certainty
 
     all_predictions = torch.argmax(confidences, axis=1)
-    confident_predictions = torch.where(certain, all_predictions, -1)
+    confident_predictions = torch.where(certain, all_predictions, torch.tensor(-1, dtype=torch.int64))
 
     num_confident = torch.sum(confident_predictions != -1)
     num_correct_confident = torch.sum(confident_predictions == torch.tensor(labels))
