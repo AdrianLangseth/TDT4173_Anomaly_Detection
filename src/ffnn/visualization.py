@@ -24,16 +24,19 @@ bnn_50_not_mnist = bnn_vis.get_prediction_data(0, True)
 
 bnn_all = [bnn_1, bnn_2, bnn_7, bnn_19, bnn_50]
 
+
 # Accuracy
 def print_accuracies():
     acc_ffnn = metrics.compute_accuracy(y_true_mnist, y_pred_ffnn_mnist)
     acc_dropout = metrics.compute_accuracy(y_true_mnist, y_pred_dropout_mnist)
-    acc_bnn = metrics.compute_accuracy(bnn_vis.mnist_labels, bnn_50["all_predictions"])
-    acc_conf_bnn = metrics.compute_accuracy(bnn_vis.mnist_labels, bnn_50["confident_predictions"])
+    acc_bnn = bnn_50['accuracy']
+    acc_conf_bnn_all = metrics.compute_accuracy(bnn_vis.mnist_labels, bnn_50['confident_predictions'])
+    acc_conf_bnn_within = bnn_50["confident_accuracy"]
     print('Accuracy, FFNN:', round(acc_ffnn, 2))
     print('Accuracy, dropout:', round(acc_dropout, 2))
     print('Accuracy, BNN:', round(acc_bnn, 2))
-    print('Confident accuracy, BNN:', round(acc_conf_bnn, 2))
+    print('Accuracy, BNN w/uncertainty:', round(acc_conf_bnn_all, 2))
+    print('Confident accuracy, BNN w/uncertainty:', round(acc_conf_bnn_within, 2))
 
 
 # Precision, recall, F1-score, and support
@@ -68,23 +71,29 @@ def make_accuracy_line_chart():
     ffnn_accuracy = np.zeros(data_sizes.size)
     dropout_accuracy = np.zeros(data_sizes.size)
     bnn_accuracy = np.zeros(data_sizes.size)
-    bnn_accuracy_conf = np.zeros(data_sizes.size)
+    bnn_accuracy_conf_whole = np.zeros(data_sizes.size)
+    bnn_accuracy_conf_conf = np.zeros(data_sizes.size)
 
     for i in range(data_sizes.size):
         ffnn_accuracy[i] = metrics.compute_accuracy(y_true_mnist, pred['ffnn_models/model_' + str(data_sizes[i])])
         dropout_accuracy[i] = metrics.compute_accuracy(y_true_mnist, pred['dropout_models/model_' + str(data_sizes[i])])
         bnn_accuracy[i] = bnn_all[i]["accuracy"]
-        bnn_accuracy_conf[i] = metrics.compute_accuracy(bnn_vis.mnist_labels, bnn_all[i]["confident_predictions"])
+        bnn_accuracy_conf_whole[i] = metrics.compute_accuracy(bnn_vis.mnist_labels, bnn_all[i]["confident_predictions"])
+        bnn_accuracy_conf_conf[i] = bnn_all[i]['confident_accuracy']
 
     fig, ax = plt.subplots(nrows=1, ncols=1,
                             figsize=(15, 5))
-    comparison.make_line_chart(ax, data_sizes, [ffnn_accuracy, dropout_accuracy, bnn_accuracy, bnn_accuracy_conf],
-                               ['FFNN', 'FFNN w/dropout', 'BNN, all predictions', 'BNN, confident predictions'],
-                               'Size of training set', 'Accuracy (%)', 'Accuracy')
+    comparison.make_line_chart(
+        ax, data_sizes,
+        [ffnn_accuracy, dropout_accuracy, bnn_accuracy, bnn_accuracy_conf_whole, bnn_accuracy_conf_conf],
+        ['FFNN', 'FFNN w/dropout', 'BNN, all predictions',
+         'BNN, confident predictions, overall', 'BNN, confident predictions, within'],
+        'Size of training set', 'Accuracy (%)', 'Accuracy')
     plt.xticks(data_sizes)
 
     fig.savefig('Accuracy_plot')
-    return {"FFNN": ffnn_accuracy, "Dropout": dropout_accuracy, "BNN_all": bnn_accuracy, "BNN_conf": bnn_accuracy_conf}
+    return {"FFNN": ffnn_accuracy, "Dropout": dropout_accuracy, "BNN_all": bnn_accuracy,
+            "BNN_conf": bnn_accuracy_conf_whole, "BNN_conf_within": bnn_accuracy_conf_conf}
 
 
 # Violin plot of entropies
@@ -180,7 +189,7 @@ def make_entropy_plots():
 
 if __name__ == "__main__":
     print_accuracies()
-    print_reports()
+    # print_reports()
     make_accuracy_line_chart()
-    make_confusion_matrices()
-    make_entropy_plots()
+    # make_confusion_matrices()
+    # make_entropy_plots()
