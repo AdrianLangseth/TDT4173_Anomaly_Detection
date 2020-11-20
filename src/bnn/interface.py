@@ -15,7 +15,7 @@ def get_prediction_data(train_set_i=0, dataset="test"):
     if dataset == "notmnist":
         ims, labs = get_loader_data(notmnist_loader)
     else:
-        ims, labs = MNISTData(dataset).data.tensors
+        ims, labs = MNISTData(dataset).data[:]
 
     setup_model(train_set_i)
     num_items = len(labs)
@@ -36,5 +36,6 @@ def get_prediction_data(train_set_i=0, dataset="test"):
 
 if __name__ == '__main__':
     print(*get_prediction_data(train_set_i=4).items(), sep="\n", end="\n\n")
+    print(*get_prediction_data(train_set_i=4, dataset="train").items(), sep="\n", end="\n\n")
     # print(*get_prediction_data(train_set_i=0).items(), sep="\n", end="\n\n")
     print(*get_prediction_data(train_set_i=0, dataset="notmnist").items(), sep="\n")
