@@ -26,7 +26,7 @@ bnn_7_not_mnist = bnn_vis.get_prediction_data(2, "notmnist")
 bnn_2_not_mnist = bnn_vis.get_prediction_data(3, "notmnist")
 bnn_1_not_mnist = bnn_vis.get_prediction_data(4, "notmnist")
 
-# bnn_50_train = bnn_vis.get_prediction_data(0, "train")
+bnn_50_train = bnn_vis.get_prediction_data(0, "train")
 
 bnn_all = [bnn_1, bnn_2, bnn_7, bnn_19, bnn_50]
 
@@ -120,10 +120,9 @@ def make_entropy_plots_sets():
         not_mnist['d50000'])
     fig7.savefig('Entropy_Dropout_sets')
 
-    # TODO: Change first bnn_50['entropies'] to bnn_50_train['entropies']
     fig8 = comparison.make_violinplot_for_comparing_sets(
         'Violin plot of entropies for the BNN model trained on 50 000 examples',
-        bnn_50['entropies'],
+        bnn_50_train['entropies'][:10000],
         bnn_50['entropies'],
         bnn_50_not_mnist['entropies'])
     fig8.savefig('Entropy_BNN_sets')
