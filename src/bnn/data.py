@@ -1,22 +1,17 @@
 import torch
-import torchvision
-import torchvision.transforms as transforms
-import torchvision.datasets as datasets
-from torch.utils.data import DataLoader, random_split, sampler, TensorDataset
+from torchvision.datasets import MNIST
+from torch.utils.data import DataLoader, random_split, TensorDataset
 from torchvision.datasets.folder import ImageFolder
 import numpy as np
 import os
-import itertools
-from pathlib import Path
 from PIL import Image
 
+from settings import ROOT_DIR, DATA_DIR, device
 
-use_cuda = torch.cuda.is_available()
-device = torch.device("cuda" if use_cuda else "cpu")
 
 batch_size = 256
 training_set_sizes = [50_000, 19_000, 7_000, 2_500, 1_000]
-data_dir = os.path.join(Path(os.path.abspath(__file__)).parents[2], "data")
+
 class MNISTData:
     train_data, val_data, test_data = None, None, None
 
@@ -30,11 +25,11 @@ class MNISTData:
         assert mode in ("train", "val", "test")
         if mode in ("train", "val"):
             if MNISTData.train_data is None or MNISTData.val_data is None:
-                dataset = transform(datasets.MNIST(root=data_dir, train=True, download=True))
+                dataset = transform(MNIST(root=DATA_DIR, train=True, download=True))
                 MNISTData.train_data, MNISTData.val_data = random_split(dataset, [size or 50_000, 10_000])
         elif mode == "test":
             if MNISTData.test_data is None:
-                MNISTData.test_data = transform(datasets.MNIST(root=data_dir, train=False, download=True))
+                MNISTData.test_data = transform(MNIST(root=DATA_DIR, train=False, download=True))
 
         self.data = getattr(MNISTData, mode + "_data")
         self.size = size if size is not None else len(self.data)
@@ -49,12 +44,12 @@ class MNISTData:
         return DataLoader(self, batch_size=batch_size, shuffle=True)
 
 
-notmnist_path = os.path.join(data_dir, "notMNIST_small")
 class NotMNISTData(ImageFolder):
     size = 10_000
+    data_path = os.path.join(DATA_DIR, "notMNIST_small")
 
     def __init__(self):
-        super().__init__(notmnist_path)
+        super().__init__(self.data_path)
 
         def get_im_data(path):
             with open(path, 'rb') as f:
@@ -74,22 +69,22 @@ class NotMNISTData(ImageFolder):
         return self.data[key], self.targets[key]
 
 
-test_loader = MNISTData("test").loader()
-val_loader =  MNISTData("val").loader()
-train_loader = None
-
 def set_train_size(training_set_size):
     global train_loader
     train_loader = MNISTData("train", size=training_set_size).loader()
-
-notmnist_loader = DataLoader(
-    NotMNISTData(),
-    batch_size=batch_size, 
-    shuffle=True
-)
 
 def get_loader_data(data_loader):
     image_batches, label_batches = zip(*data_loader)
     images = torch.cat(tuple(batch.view(-1, 28*28) for batch in image_batches), dim=0)
     labels = torch.cat(tuple(batch.view(-1) for batch in label_batches), dim=0)
     return images, labels
+
+
+test_loader = MNISTData("test").loader()
+val_loader =  MNISTData("val").loader()
+train_loader = None
+notmnist_loader = DataLoader(
+    NotMNISTData(),
+    batch_size=batch_size, 
+    shuffle=True
+)
