@@ -16,7 +16,6 @@ def setup_model(training_set_index=0):
     Net.optim = pyro.optim.Adam({"lr": lr})
     Net.num_epochs = 1_000
     Net.num_samples = 50
-    Net.min_certainty = 0.45
 
     model_path = os.path.join(MODELS_DIR, f"{training_set_size}_train.model")
     Net.load_model(model_path)
