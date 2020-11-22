@@ -26,5 +26,4 @@ def setup_model(training_set_index=0):
 if __name__ == '__main__':
     for i in range(len(data.training_set_sizes)):
         setup_model(i)
-        print(Net.accuracy_all())
-        print(Net.accuracy_exclude_uncertain())
+        print(Net.prediction_data())
