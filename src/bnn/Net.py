@@ -98,42 +98,10 @@ def predict_all(x):
     confidences = torch.mean(get_prediction_confidence(x), 0)
     return torch.argmax(confidences, axis=1)
 
-"""
-    Accuracy functions (prediction interpreters)
-"""
-def accuracy_all():
-    images, labels = data.MNISTData("val").data[:]
-    accuracy = torch.sum(predict_all(images) == labels) / len(labels)
-    return accuracy
-
-def accuracy_exclude_uncertain():
-    images, labels = data.MNISTData("val").data[:]
-    n_predictions, n_correct_predictions = predict_confident(images, labels)
-    
-    accuracy = n_correct_predictions / n_predictions if n_predictions else 0
-    skip_percent = 1 - n_predictions / len(labels)
-    return accuracy, skip_percent
-
-def predict_confident(images, labels):
-    confidences = torch.mean(get_prediction_confidence(images), axis=0)
-    certain = torch.max(confidences, axis=1).values > min_certainty
-    confident_predictions = torch.argmax(confidences[certain, :], axis=1)
-    
-    num_confident = torch.sum(certain)
-    num_correct = torch.sum(confident_predictions == labels[certain])
-
-    return num_confident, num_correct
-
 def prediction_data(images, labels):
     confidences = torch.mean(get_prediction_confidence(images), axis=0)
-    certain = torch.max(confidences, axis=1).values > min_certainty
-
     all_predictions = torch.argmax(confidences, axis=1)
-    confident_predictions = torch.where(certain, all_predictions, -1)
-
-    num_confident = torch.sum(confident_predictions != -1)
-    num_correct_confident = torch.sum(confident_predictions == torch.tensor(labels))
-    
     entropies = entropy(confidences.cpu(), axis=1)
+    accuracy = torch.mean(all_predictions == labels, dtype=float).item()
 
-    return all_predictions, confident_predictions, num_confident.item(), num_correct_confident.item(), entropies 
+    return all_predictions, entropies, accuracy

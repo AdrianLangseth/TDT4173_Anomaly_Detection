@@ -16,23 +16,13 @@ def get_prediction_data(train_set_i=0, dataset="test"):
         ims, labs = get_loader_data(notmnist_loader)
     else:
         ims, labs = MNISTData(dataset).data[:]
-
     setup_model(train_set_i)
-    num_items = len(labs)
-    all_predictions, confident_predictions, num_confident_predictions, num_correct_predictions, entropies\
-        = prediction_data(ims, labs)
         
-    return {
-        "all_predictions": all_predictions,
-        "confident_predictions": confident_predictions,
-        "num_confident_predictions": num_confident_predictions,
-        "num_correct_predictions": num_correct_predictions,
-        "entropies": entropies,
-        "num_skipped": num_items - num_confident_predictions,
-        "skip_percent": (num_items - num_confident_predictions) / num_items,
-        "accuracy": torch.sum(all_predictions == labs).item() / num_items,
-        "confident_accuracy": num_correct_predictions / num_confident_predictions
-    }
+    return dict(zip(
+        ("all_predictions", "entropies", "accuracy"),
+        prediction_data(ims, labs)
+    ))
+    
 
 if __name__ == '__main__':
     print(*get_prediction_data(train_set_i=4).items(), sep="\n", end="\n\n")
