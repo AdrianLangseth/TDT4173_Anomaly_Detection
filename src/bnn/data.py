@@ -6,7 +6,7 @@ import numpy as np
 import os
 from PIL import Image
 
-from src.bnn.settings import ROOT_DIR, DATA_DIR, device
+from src.bnn.settings import DATA_DIR, device
 
 
 batch_size = 256
