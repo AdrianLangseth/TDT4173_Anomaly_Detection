@@ -10,7 +10,7 @@ from pathlib import Path
 import warnings
 
 import src.bnn.data as data
-from src.bnn.data import device
+from src.bnn.settings import device
 
 warnings.filterwarnings("ignore", category=FutureWarning) # suppress deprecation warnings for pyro.random_module
 
