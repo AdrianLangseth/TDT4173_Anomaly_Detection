@@ -1,10 +1,10 @@
 import torch
 import numpy as np
 
-from data import test_loader, notmnist_loader, MNISTData
-from Net import prediction_data
-from main import setup_model
-from utils import get_loader_data
+from src.bnn.data import test_loader, notmnist_loader, MNISTData
+from src.bnn.Net import prediction_data
+from src.bnn.main import setup_model
+from src.bnn.utils import get_loader_data
 
 mnist_images, mnist_labels = MNISTData("test").data.tensors
 notmnist_images, notmnist_labels = get_loader_data(notmnist_loader)

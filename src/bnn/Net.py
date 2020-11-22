@@ -9,8 +9,8 @@ from pyro.infer import Trace_ELBO, SVI
 from pathlib import Path
 import warnings
 
-import data
-from data import device
+import src.bnn.data as data
+from src.bnn.data import device
 
 warnings.filterwarnings("ignore", category=FutureWarning) # suppress deprecation warnings for pyro.random_module
 
