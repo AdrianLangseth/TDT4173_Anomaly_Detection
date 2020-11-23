@@ -69,9 +69,9 @@ class NotMNISTData(ImageFolder):
         return self.data[key], self.targets[key]
 
 
-def set_train_size(training_set_size):
+def set_train_size(train_set_i):
     global train_loader
-    train_loader = MNISTData("train", size=training_set_size).loader()
+    train_loader = MNISTData("train", size=training_set_sizes[train_set_i]).loader()
 
 def get_loader_data(data_loader):
     image_batches, label_batches = zip(*data_loader)
