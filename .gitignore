@@ -133,3 +133,4 @@ dmypy.json
 *.png
 logs
 
+src/ffnn/notMNIST_all/all_data.npz
