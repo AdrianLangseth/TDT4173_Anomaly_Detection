@@ -12,7 +12,9 @@ import warnings
 import data
 from settings import device
 
-warnings.filterwarnings("ignore", category=FutureWarning) # suppress deprecation warnings for pyro.random_module
+# suppress deprecation warnings for pyro.random_module
+warnings.filterwarnings("ignore", category=FutureWarning) 
+
 
 # Base network that we're building on
 class FFNN(torch.nn.Module):
@@ -26,10 +28,12 @@ class FFNN(torch.nn.Module):
         output = self.out(hidden)
         return output
 
+
 net = FFNN().to(device)
 sample_models = None
 log_softmax = torch.nn.LogSoftmax(dim=1)
 softplus = torch.nn.Softplus()
+
 
 def model_normal(like):
     return dist.Normal(loc=torch.zeros_like(like), scale=torch.ones_like(like))

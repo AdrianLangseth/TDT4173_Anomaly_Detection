@@ -8,6 +8,7 @@ from main import setup_model
 mnist_images, mnist_labels = MNISTData("test").data.tensors
 notmnist_images, notmnist_labels = get_loader_data(notmnist_loader)
 
+
 def get_prediction_data(train_set_i=0, dataset="test"):
     """
     :param train_set_i: training set size index. Must be in [0, 4]. 
