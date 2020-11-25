@@ -9,6 +9,12 @@ from data_load import load_MNIST_subset, load_MNIST_validation_data
 
 
 def create_model(size: int, is_drop_out: bool) -> None:
+    """
+    Build the model based on the parameters
+    :param size: size of training data.
+    :param is_drop_out: bool whether a dropout model is about to be made.
+    :return: None, model is saved and not returned.
+    """
     if is_drop_out is True:
         # The model WITH drop-out
         drop_out_rate = .269
@@ -39,7 +45,7 @@ def create_model(size: int, is_drop_out: bool) -> None:
                       metrics=["accuracy"])
 
     except IOError:
-        # Not there....
+        # Not there, so we need to make it.
         inputs = KL.Input(shape=(28, 28))
         layer_result = KL.Flatten()(inputs)
         layer_result = KL.Dense(512, activation=act.sigmoid)(layer_result)
@@ -57,12 +63,15 @@ def create_model(size: int, is_drop_out: bool) -> None:
 
         # model.summary()
 
+        # Tensorboard callback
         tb_callback = TensorBoard(
             log_dir=f'./logs/{model_location}/{size}',
             histogram_freq=0,
             write_graph=True,
             write_images=True,
         )
+
+        # Early stopping callback
         es_callback = EarlyStopping(
             monitor='val_loss',
             patience=15,

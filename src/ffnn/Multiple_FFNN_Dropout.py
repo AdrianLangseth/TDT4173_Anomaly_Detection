@@ -2,6 +2,11 @@ from Multiple_FFNN import create_model
 
 
 def create_dropout_model(size: int):
+    """
+    Wrapper on create_model function, with dropout set True
+    :param size: Training data size
+    :return: None
+    """
     create_model(size=size, is_drop_out=True)
 
 
