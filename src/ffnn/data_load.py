@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 from PIL import Image
 import os
@@ -5,6 +7,12 @@ from numpy.core._multiarray_umath import ndarray
 
 
 def load_data(path) -> (tuple, tuple):
+    """
+    Loads data from a given path
+    :param path: relative path to the data file
+    :return: returns training and test data and labels.
+    """
+
     with np.load(path) as f:
         x_train, y_train = f['x_train'], f['y_train']  # 60000 x 28 x 28, 600000
         x_test, y_test = f['x_test'], f['y_test']  # 10000 x 28 x 28, 100000
@@ -15,9 +23,11 @@ def load_data(path) -> (tuple, tuple):
 
 
 def load_MNIST() -> (ndarray, ndarray, ndarray, ndarray):
-    # This does the same as load_data, but pre-assumes the location of the file,
-    # and unpacks the two tuples returned from load_data into elements
-
+    """
+    does the same as load_data, but pre-assumes the location of the file,
+    and unpacks the two tuples returned from load_data into elements
+    :return: images and labels for train and test set.
+    """
     (x_train, y_train), (x_test, y_test) = load_data(
         os.path.join(os.path.dirname(__file__), 'mnist.npz')
     )
@@ -32,13 +42,19 @@ def load_MNIST_validation_data() -> (ndarray, ndarray):
 
 
 def load_MNIST_subset(size: int) -> (ndarray, ndarray, ndarray, ndarray):
+    """
+    a wrapper which loads data thorugh load_data, but keeps only a set amount images.
+    :param size: amount of images to keep.
+    :return:
+    """
     x_train, y_train, x_test, y_test = load_MNIST()
     x_train, y_train = x_train[:size], y_train[:size]
 
     return x_train, y_train, x_test, y_test
 
-######### Not used but may become useful. Kept for Legacy ########
-def create_not_mnist_dict():
+
+# Not used but may become useful. Kept for Legacy:
+def create_not_mnist_dict() -> ndarray:
     dataset = {}
     for imagename in os.listdir("notMNIST_all"):
         if imagename == ".DS_Store":
@@ -51,10 +67,15 @@ def create_not_mnist_dict():
         except (FileNotFoundError, OSError) as e:
             print(e)
     return np.array(dataset)
+#################
 
 
-def create_not_mnist_doubleset():
-
+def create_not_mnist_doubleset() -> (list, list):
+    """
+    A function which iterates through notMNIST images and sorts into two lists of images and arrays.
+    :return x: images as ndarrays
+    :return y: labels of images
+    """
     try:
         with np.load("./notMNIST_all/all_data.npz") as f:
             x, y = f['x'], f['y']
@@ -80,12 +101,17 @@ def create_not_mnist_doubleset():
                 print(f"Skipping the file {image_name}, as it gave error {e}")
 
         x, y = np.array(x), np.array(y)
-        np.savez(file="./notMNIST_all/all_data.npz", x=x, y=y)
+        np.savez(file="./notMNIST_all/all_data.npz", x=x, y=y)  # Save data so we do not have to parse next time.
     return x, y
 
-def get_high_entropy_mnist_test():
+
+def get_high_entropy_mnist_test() -> list:
+    """
+    PGetter for the dataset consisting of the top-10 images by entropy in dropout model.
+    :return: a list of tuples (image, correct)
+    """
     _, _, x_test, y_test = load_MNIST()
-    li = [4571, 4966, 2369, 3811, 3727, 1328, 6011, 2406, 7216, 5749] # The image indices of those with the highest entropy of the dropout model.
+    li = [4571, 4966, 2369, 3811, 3727, 1328, 6011, 2406, 7216, 5749]  # The indices of  highest entropy images.
     ret = []
     for i in li:
         ret.append((x_test[i], y_test[i]))
