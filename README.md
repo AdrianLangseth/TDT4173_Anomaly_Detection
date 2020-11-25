@@ -11,8 +11,9 @@ Code relating to the BNN can be found in `src/bnn/`. The folder contains the fol
 * `Net.py` Contains the code for the BNN itself. 
 * `settings.py` Defines various constants and variables relating to the project.
 * `data.py` Contains code for loading and processing the MNIST and NotMNIST datasets. 
-* `main.py` Functions for setting up the environment for training networks.
+* `main.py` Functions for setting up the environment for training networks. Most of the hyperparameters are defined here. 
 * `interface.py` Interface to the BNN that is used to easily access metrics about the network's performance.
+* `website_data.py` Contains a small snippet of code for retriving the BNN's prediction entropy for the 10 instances with highest FFNN prediction entropy.
 
 The image data (MNIST and NotMNIST) used by the BNN is stored in `data`. Trained models are stored in `models/bnn/`. 
 
