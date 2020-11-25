@@ -38,4 +38,4 @@ def test_notmnist_entropy_for_all() -> dict:
 
 
 if __name__ == "__main__":
-    print("The models predicted are: ", test_notmnist_entropy_for_all().keys())
+    print("The models predicted are: ", [*test_notmnist_entropy_for_all()])
