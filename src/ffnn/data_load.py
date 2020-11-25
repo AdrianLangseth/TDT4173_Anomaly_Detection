@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 from PIL import Image
+import os
 from numpy.core._multiarray_umath import ndarray
 
 
@@ -27,7 +28,9 @@ def load_MNIST() -> (ndarray, ndarray, ndarray, ndarray):
     and unpacks the two tuples returned from load_data into elements
     :return: images and labels for train and test set.
     """
-    (x_train, y_train), (x_test, y_test) = load_data('mnist.npz')
+    (x_train, y_train), (x_test, y_test) = load_data(
+        os.path.join(os.path.dirname(__file__), 'mnist.npz')
+    )
 
     return x_train, y_train, x_test, y_test
 
