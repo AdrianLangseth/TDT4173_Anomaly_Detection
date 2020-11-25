@@ -61,7 +61,7 @@ def make_confusion_matrices():
         [y_pred_ffnn_mnist, y_pred_dropout_mnist, bnn_50["all_predictions"]],
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         ['FFNN', 'FFNN w/dropout', 'BNN'], 20, 6, 1, 3)
-    fig.savefig('Heatmaps')
+    fig.savefig('../visualization/imgs/Heatmaps')
 
 
 # Compare FFNN, FFNN w/dropout and BNN on accuracy when different training set sizes are used
@@ -85,8 +85,7 @@ def make_accuracy_line_chart():
         'Size of training set', 'Accuracy (%)', 'Accuracy')
     plt.xticks(data_sizes)
 
-    fig.savefig('Accuracy_plot')
-    return {"FFNN": ffnn_accuracy, "Dropout": dropout_accuracy, "BNN": bnn_accuracy}
+    fig.savefig('../visualization/imgs/Accuracy_plot')
 
 
 # Violin plot of entropies
@@ -98,21 +97,21 @@ def make_entropy_plots_sets():
         train['f50000'][:10000],
         test['f50000'],
         not_mnist['f50000'])
-    fig6.savefig('Entropy_FFNN_sets')
+    fig6.savefig('../visualization/imgs/Entropy_FFNN_sets')
 
     fig7 = comparison.make_violinplot_for_comparing_sets(
         'Violin plot of entropies for the FFNN w/dropout model trained on 50 000 examples',
         train['d50000'][:10000],
         test['d50000'],
         not_mnist['d50000'])
-    fig7.savefig('Entropy_Dropout_sets')
+    fig7.savefig('../visualization/imgs/Entropy_Dropout_sets')
 
     fig8 = comparison.make_violinplot_for_comparing_sets(
         'Violin plot of entropies for the BNN model trained on 50 000 examples',
         bnn_50_train['entropies'][:10000],
         bnn_50['entropies'],
         bnn_50_not_mnist['entropies'])
-    fig8.savefig('Entropy_BNN_sets')
+    fig8.savefig('../visualization/imgs/Entropy_BNN_sets')
 
 
 def make_entropy_plots_mnist():
@@ -122,35 +121,35 @@ def make_entropy_plots_mnist():
         test['f50000'],
         test['d50000'],
         bnn_50["entropies"])
-    fig.savefig('Entropy_50')
+    fig.savefig('../visualization/imgs/Entropy_50')
 
     fig2 = comparison.make_violinplot_for_comparing_models(
         'Violin plot of entropies for models trained on 19 000 examples',
         test['f19000'],
         test['d19000'],
         bnn_19["entropies"])
-    fig2.savefig('Entropy_19')
+    fig2.savefig('../visualization/imgs/Entropy_19')
 
     fig3 = comparison.make_violinplot_for_comparing_models(
         'Violin plot of entropies for models trained on 7 000 examples',
         test['f7000'],
         test['d7000'],
         bnn_7["entropies"])
-    fig3.savefig('Entropy_7')
+    fig3.savefig('../visualization/imgs/Entropy_7')
 
     fig4 = comparison.make_violinplot_for_comparing_models(
         'Violin plot of entropies for models trained on 2 500 examples',
         test['f2500'],
         test['d2500'],
         bnn_2["entropies"])
-    fig4.savefig('Entropy_2')
+    fig4.savefig('../visualization/imgs/Entropy_2')
 
     fig5 = comparison.make_violinplot_for_comparing_models(
         'Violin plot of entropies for models trained on 1 000 examples',
         test['f1000'],
         test['d1000'],
         bnn_1["entropies"])
-    fig5.savefig('Entropy_1')
+    fig5.savefig('../visualization/imgs/Entropy_1')
 
     # Comparison of entropies between the different training sizes for each model on the MNIST test set
     fig9 = comparison.make_violinplot_for_comparing_sizes(
@@ -160,7 +159,7 @@ def make_entropy_plots_mnist():
         test['f7000'],
         test['f2500'],
         test['f1000'])
-    fig9.savefig('Entropy_FFNN_sizes')
+    fig9.savefig('../visualization/imgs/Entropy_FFNN_sizes')
 
     fig10 = comparison.make_violinplot_for_comparing_sizes(
         'Violin plot of entropies for the different FFNN w/dropout models',
@@ -169,7 +168,7 @@ def make_entropy_plots_mnist():
         test['d7000'],
         test['d2500'],
         test['d1000'])
-    fig10.savefig('Entropy_Dropout_sizes')
+    fig10.savefig('../visualization/imgs/Entropy_Dropout_sizes')
 
     fig11 = comparison.make_violinplot_for_comparing_sizes(
         'Violin plot of entropies for the different BNN models',
@@ -178,7 +177,7 @@ def make_entropy_plots_mnist():
         bnn_7['entropies'],
         bnn_2['entropies'],
         bnn_1['entropies'])
-    fig11.savefig('Entropy_BNN_sizes')
+    fig11.savefig('../visualization/imgs/Entropy_BNN_sizes')
 
 
 def make_entropy_plots_notmnist():
@@ -188,35 +187,35 @@ def make_entropy_plots_notmnist():
         not_mnist['f50000'],
         not_mnist['d50000'],
         bnn_50_not_mnist["entropies"])
-    fig.savefig('Entropy_50_notMNSIT')
+    fig.savefig('../visualization/imgs/Entropy_50_notMNSIT')
 
     fig2 = comparison.make_violinplot_for_comparing_models(
         'Violin plot of entropies for models trained on 19 000 examples',
         not_mnist['f19000'],
         not_mnist['d19000'],
         bnn_19_not_mnist["entropies"])
-    fig2.savefig('Entropy_19_notMNSIT')
+    fig2.savefig('../visualization/imgs/Entropy_19_notMNSIT')
 
     fig3 = comparison.make_violinplot_for_comparing_models(
         'Violin plot of entropies for models trained on 7 000 examples',
         not_mnist['f7000'],
         not_mnist['d7000'],
         bnn_7_not_mnist["entropies"])
-    fig3.savefig('Entropy_7_notMNSIT')
+    fig3.savefig('../visualization/imgs/Entropy_7_notMNSIT')
 
     fig4 = comparison.make_violinplot_for_comparing_models(
         'Violin plot of entropies for models trained on 2 500 examples',
         not_mnist['f2500'],
         not_mnist['d2500'],
         bnn_2_not_mnist["entropies"])
-    fig4.savefig('Entropy_2_notMNSIT')
+    fig4.savefig('../visualization/imgs/Entropy_2_notMNSIT')
 
     fig5 = comparison.make_violinplot_for_comparing_models(
         'Violin plot of entropies for models trained on 1 000 examples',
         not_mnist['f1000'],
         not_mnist['d1000'],
         bnn_1_not_mnist["entropies"])
-    fig5.savefig('Entropy_1_notMNSIT')
+    fig5.savefig('../visualization/imgs/Entropy_1_notMNSIT')
 
     # Comparison of entropies between the different training sizes for each model on set of anomalies
     fig9 = comparison.make_violinplot_for_comparing_sizes(
@@ -226,7 +225,7 @@ def make_entropy_plots_notmnist():
         not_mnist['f7000'],
         not_mnist['f2500'],
         not_mnist['f1000'])
-    fig9.savefig('Entropy_FFNN_sizes_notMNSIT')
+    fig9.savefig('../visualization/imgs/Entropy_FFNN_sizes_notMNSIT')
 
     fig10 = comparison.make_violinplot_for_comparing_sizes(
         'Violin plot of entropies for the different FFNN w/dropout models',
@@ -235,7 +234,7 @@ def make_entropy_plots_notmnist():
         not_mnist['d7000'],
         not_mnist['d2500'],
         not_mnist['d1000'])
-    fig10.savefig('Entropy_Dropout_sizes_notMNSIT')
+    fig10.savefig('../visualization/imgs/Entropy_Dropout_sizes_notMNSIT')
 
     fig11 = comparison.make_violinplot_for_comparing_sizes(
         'Violin plot of entropies for the different BNN models',
@@ -244,7 +243,7 @@ def make_entropy_plots_notmnist():
         bnn_7_not_mnist['entropies'],
         bnn_2_not_mnist['entropies'],
         bnn_1_not_mnist['entropies'])
-    fig11.savefig('Entropy_BNN_sizes_notMNSIT')
+    fig11.savefig('../visualization/imgs/Entropy_BNN_sizes_notMNSIT')
 
 
 if __name__ == "__main__":
