@@ -8,7 +8,7 @@ import data
 from settings import MODELS_DIR
 
 
-# Network hyperparameters:
+# Network hyperparameters
 lr = 0.001
 optim = pyro.optim.Adam({"lr": lr})
 num_epochs = 1000

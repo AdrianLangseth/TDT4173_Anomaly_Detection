@@ -18,7 +18,9 @@ def load_MNIST() -> (ndarray, ndarray, ndarray, ndarray):
     # This does the same as load_data, but pre-assumes the location of the file,
     # and unpacks the two tuples returned from load_data into elements
 
-    (x_train, y_train), (x_test, y_test) = load_data('mnist.npz')
+    (x_train, y_train), (x_test, y_test) = load_data(
+        os.path.join(os.path.dirname(__file__), 'mnist.npz')
+    )
 
     return x_train, y_train, x_test, y_test
 

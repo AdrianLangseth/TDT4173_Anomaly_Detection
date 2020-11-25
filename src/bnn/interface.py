@@ -38,7 +38,6 @@ def get_prediction_data(train_set_i=0, dataset="test"):
         ("all_predictions", "entropies", "accuracy"),
         prediction_data(ims, labs)
     ))
-    
 
 if __name__ == '__main__':
     pprint(get_prediction_data(train_set_i=4))
