@@ -1,5 +1,14 @@
 # TDT4173_Anomaly_Detection
 
+This repository contains code for the 2020 TDT4173 project task. The chosen topic is probabilistic learning, and the project focuses on comparing the attributes and performance of standard feed forward neural networks (with and without dropout) and those of a Bayesian neural network. The project's aim is not to create the best possible networks/models, but to create networks that are easily compared.
+
+The project source consists of three submodules:
+* bnn - Source code for the BNN.
+* ffnn - Source code for the FFNN. Some visualization code can also be found here.
+* visualization - Source code for the visualizations presented in the paper.
+
+Due to the stochastic nature nature of this work (dropout, training & validation set contents are randomized, BNNs are inherently probabilistic), the results presented in the paper may not be exactly reproducible. The general trends that we discuss however, will show up in any retrained models.
+
 ## Sources
 
 ### Vizualization
