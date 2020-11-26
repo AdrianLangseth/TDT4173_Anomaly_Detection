@@ -2,12 +2,12 @@ import torch
 import os
 import sys
 
-from Net import get_prediction_confidence
-from main import setup_model
-from settings import SRC_DIR, device
+from src.bnn.Net import get_prediction_confidence
+from src.bnn.main import setup_model
+from src.bnn.settings import SRC_DIR, device
 
 sys.path.append(os.path.join(SRC_DIR, 'ffnn'))  # make ffnn files available as imports
-from data_load import get_high_entropy_mnist_test
+from src.ffnn.data_load import get_high_entropy_mnist_test
 
 
 setup_model()
