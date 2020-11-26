@@ -27,7 +27,7 @@ def get_entropy_of_maxes():
     for model in model_paths:
         pred = model_predictor(model + "/model_50000", np.array(images), np.array(values))[0]
         for i in pred:
-            d[model[0]].append((np.argmax(i), i[np.argmax(i)]))
+            d[model[0]].append((np.argmax(i), i))
 
     return d
 
