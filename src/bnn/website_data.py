@@ -2,7 +2,7 @@ import torch
 import os
 import sys
 
-from Net import prediction_data
+from Net import get_prediction_confidence
 from main import setup_model
 from settings import SRC_DIR, device
 
@@ -16,8 +16,12 @@ setup_model()
 def get_high_ffnn_entropy_instances_entropies():
     x, y = zip(*get_high_entropy_mnist_test())
     x = torch.tensor(x, dtype=torch.float32).to(device).view(-1, 28*28)
-    y = torch.tensor(y).to(device)
-    return prediction_data(x, y)[1]
+    y = torch.tensor(y)
+    
+    confidences = get_prediction_confidence(x)
+    predictions = torch.mean(confidences, 0)
+    
+    return confidences, predictions, y
 
 
 if __name__ == '__main__':
