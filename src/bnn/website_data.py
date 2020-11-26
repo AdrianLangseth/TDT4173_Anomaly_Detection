@@ -18,8 +18,8 @@ def get_high_ffnn_entropy_instances_data():
     x = torch.tensor(x, dtype=torch.float32).to(device).view(-1, 28*28)
     y = torch.tensor(y)
     
-    confidences = get_prediction_confidence(x)
-    predictions = torch.mean(confidences, 0)
+    confidences = torch.mean(get_prediction_confidence(x), 0)
+    predictions = torch.argmax(confidences, axis=1)
     
     return confidences, predictions, y
 
