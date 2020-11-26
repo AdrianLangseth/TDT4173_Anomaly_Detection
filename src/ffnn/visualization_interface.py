@@ -1,6 +1,7 @@
 from src.ffnn.notMNIST import test_notmnist_entropy_for_all
 from src.ffnn.FFNN_predictor import get_all_predictions, train_MNIST_entropy, test_MNIST_entropy
 import time
+from src.ffnn.webcode import get_entropy_of_maxes
 
 
 def entropy_not_mnist() -> dict:
@@ -39,6 +40,15 @@ def mnist() -> dict:
     return get_all_predictions()
 
 
+def webcode() -> dict:
+    """
+    A function whose sole function is to be a convenience wrapper for the website creator of high_entropy_mnist images.
+    :return: Dictionary whose keys are model indicator, the values is a list of tuples holding
+    (predicted value, confidence).
+    """
+    return get_entropy_of_maxes()
+
+
 if __name__ == "__main__":
     t0 = time.time()
     train = entropy_mnist_train()
@@ -53,4 +63,6 @@ if __name__ == "__main__":
     pred = mnist()
     t4 = time.time()
     print("Predictions: " + str(t4-t3))
-    print("Total: " + str(t4-t0))
+    preds = webcode()
+    t5 = time.time()
+    print("Total: " + str(t5-t0))

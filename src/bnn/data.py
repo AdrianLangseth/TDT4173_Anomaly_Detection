@@ -12,6 +12,7 @@ from src.bnn.settings import DATA_DIR, device
 batch_size = 256
 training_set_sizes = [50_000, 19_000, 7_000, 2_500, 1_000]
 
+
 class MNISTData:
     train_data, val_data, test_data = None, None, None
 
@@ -69,9 +70,10 @@ class NotMNISTData(ImageFolder):
         return self.data[key], self.targets[key]
 
 
-def set_train_size(training_set_size):
+def set_train_size(train_set_i):
     global train_loader
-    train_loader = MNISTData("train", size=training_set_size).loader()
+    train_loader = MNISTData("train", size=training_set_sizes[train_set_i]).loader()
+
 
 def get_loader_data(data_loader):
     image_batches, label_batches = zip(*data_loader)

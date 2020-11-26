@@ -1,11 +1,18 @@
 import numpy as np
 import tensorflow.keras as KK
+from src.ffnn.data_load import load_MNIST, create_not_mnist_doubleset
 from numpy.core._multiarray_umath import ndarray
 from scipy.stats import entropy
-from data_load import load_MNIST, create_not_mnist_doubleset
 
 
 def model_predictor(model_repo_path: str, x_test_values: ndarray, y_test_values: ndarray) -> (ndarray, ndarray):
+    """
+    The function for predicting the given images using the given model.
+    :param model_repo_path: relative path to the model used
+    :param x_test_values: array of images to be predicted
+    :param y_test_values: array of labels corresponding to the x_test_values.
+    :return: a set of predictions and a set of labels
+    """
     model = KK.models.load_model(model_repo_path)
     dropout_runs = 100
     if model_repo_path.split("/")[0] == "dropout_models":
@@ -17,21 +24,13 @@ def model_predictor(model_repo_path: str, x_test_values: ndarray, y_test_values:
 
             # Quicker version -- avoids loop over all elements in the test-set
             pred[np.arange(pred.shape[0]), np.argmax(temp_predict, axis=1)] += 1
-            """
-            for idx, n in enumerate(np.argmax(temp_predict, axis=1)):
-                pred[idx][n] += 1
-            """
 
         predictions = pred / dropout_runs
 
     else:
         predictions = model.predict(x_test_values)
-
-    """
-    np.savetxt(fname="./FNN_predictor__predictor.txt", X=predictions, fmt='%.6f')
-    np.savetxt(fname="./FNN_predictor__class.txt", X=np.argmax(predictions, axis=1), fmt='%.d')
-    """
     return predictions, y_test_values
+
 
 def get_int_predictions(model_repo_path: str, data_load_function=load_MNIST) -> (ndarray, ndarray):
     _, _, x_test, y_test = data_load_function()
@@ -47,37 +46,10 @@ def test_nMNIST_prediction(model_repo_path: str, data: ndarray):
 def train_MNIST_entropy():
     x_train, _, _, _ = load_MNIST()
     x_train = x_train[:10000]
-
-    '''
-    model_paths = ["ffnn_models", "dropout_models"]
-    dropout_runs = 100
-    d = {}
-    sizes = [1000, 2500, 7000, 19000, 50000]
-    for folder in model_paths:
-        for size in sizes:
-            path = folder + "/model_" + str(size)
-            model = KK.models.load_model(path)
-            if folder == "dropout_models":
-                pred = np.zeros((len(x), 10))
-                for i in range(dropout_runs):
-                    temp_predict = model.predict(x)
-                    """
-                    for idx, n in enumerate(np.argmax(temp_predict, axis=1)):
-                        pred[idx][n] += 1
-                        """
-                    pred += temp_predict
-                pred = pred / dropout_runs
-            else:
-                pred = model.predict(x)
-            model_entropy = entropy(pred, axis=1)
-            d[folder[0] + str(size)] = model_entropy
-    return d
-    '''
-
     return do_MNIST_entropy(input_data=x_train)
 
-def do_MNIST_entropy(input_data):
 
+def do_MNIST_entropy(input_data):
     model_paths = ["ffnn_models", "dropout_models"]
     dropout_runs = 100
     d = {}
@@ -107,6 +79,7 @@ def do_MNIST_entropy(input_data):
             d[folder[0] + str(size)] = model_entropy
     return d
 
+
 def not_MNIST_entropy(no_random_images=10000):
     x, _ = create_not_mnist_doubleset()
     chooser = np.random.permutation(x.shape[0])[:no_random_images]
@@ -116,40 +89,14 @@ def not_MNIST_entropy(no_random_images=10000):
 
 def test_MNIST_entropy():
     _, _, x_test, _ = load_MNIST()
-
-    '''
-    model_paths = ["ffnn_models", "dropout_models"]
-    dropout_runs = 100
-    d = {}
-    sizes = [1000, 2500, 7000, 19000, 50000]
-    for folder in model_paths:
-        for size in sizes:
-            path = folder + "/model_" + str(size)
-            model = KK.models.load_model(path)
-            if folder == "dropout_models":
-                pred = np.zeros((len(x_test), 10))
-                for i in range(dropout_runs):
-                    temp_predict = model.predict(x_test)
-
-                    # Should average out predictions at "output level" -- prior to argmax.
-                    pred += temp_predict
-                    """
-                    for idx, n in enumerate(np.argmax(temp_predict, axis=1)):
-                        pred[idx][n] += 1
-                    """
-
-                pred = pred / dropout_runs
-            else:
-                pred = model.predict(x_test)
-            model_entropy = entropy(pred, axis=1)
-            d[folder[0] + str(size)] = model_entropy
-    return d
-    '''
-
     return do_MNIST_entropy(input_data=x_test)
 
 
 def get_all_predictions():
+    """
+    Function for getting the predictions of models on the mnist test dataset.
+    :return: a dictionary with predictions of all models.
+    """
     all_results = {}
     model_paths = ["ffnn_models", "dropout_models"]
     sizes = [1000, 2500, 7000, 19000, 50000]
@@ -164,7 +111,7 @@ def get_all_predictions():
             else:
                 all_results[path] = get_int_predictions(folder + "/model_" + str(size), load_MNIST)[0]
 
-            print(f"Test-set accuracy = {np.mean(np.equal(all_results[path] , correct)):.4f} for model {path}")
+            print(f"Test-set accuracy = {np.mean(np.equal(all_results[path], correct)):.4f} for model {path}")
     return all_results
 
 
@@ -180,7 +127,6 @@ if __name__ == '__main__':
 
     for func, desc in zip(functions, descriptions):
         result = func()
-        print(f"\n\nRunning entropy-calculations on {desc}:\n{100*'='}")
+        print(f"\n\nRunning entropy-calculations on {desc}:\n{100 * '='}")
         for key in result.keys():
             print(f"Model {key:7s} gave mean entropy {np.mean(result[key]):8.4f}")
-
