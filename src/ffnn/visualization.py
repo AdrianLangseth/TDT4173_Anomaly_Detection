@@ -300,12 +300,12 @@ def print_webdata():
 
 
 if __name__ == "__main__":
-    # print_accuracies()
-    # print_reports()
-    # make_accuracy_line_chart()
+    print_accuracies()
+    print_reports()
+    make_accuracy_line_chart()
     # make_confusion_matrices()
-    # make_entropy_plots_sets()
-    # make_entropy_plots_mnist()
-    # make_entropy_plots_notmnist()
-    create_MNIST_pictures()
-    print_webdata()
+    make_entropy_plots_sets()
+    make_entropy_plots_mnist()
+    make_entropy_plots_notmnist()
+    # create_MNIST_pictures()
+    # print_webdata()
