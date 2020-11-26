@@ -9,14 +9,6 @@ The project source consists of three submodules:
 
 Due to the stochastic nature nature of this work (dropout, training & validation set contents are randomized, BNNs are inherently probabilistic), the results presented in the paper may not be exactly reproducible. The general trends that we discuss however, will show up in any retrained models.
 
-## Sources
-
-### Vizualization
-
-Dennis T, 2019. _Confusion Matrix Visualization_. https://medium.com/@dtuk81/confusion-matrix-visualization-fc31e3f30fea (accessed 31.10.2020)
-
-NTNU AI Labs, 2020. _tdt7143-2020_. https://github.com/ntnu-ai-lab/tdt4173-2020 (accessed 31.10.2020)
-
 
 ## Feed Forward Neural Network (FFNN) w/o Dropout
 
@@ -79,3 +71,16 @@ To train new models, first either delete the existing models, or change the mode
 To see how the models perform on the MNIST and NotMNIST dataset, call `get_prediction_data` in `interface.py` with your choice of model training set size and data set (in the form of a string). `interface.py` contains a detailed description of the function's accepted parameter values. 
 
 To use the trained models with a custom dataset, either call `get_prediction_data` with your dataset, or call one of the functions for prediction defined in `Net.py` with your instances (`prediction_data` requires both instances and targets).
+
+## Vizualization
+The source code for the helping functions utilized in visualizing the project
+can be found in `src/visualization`. In `src/ffnn/visualization.py` these 
+help functions are utilized with data from the three networks, and produces
+both output in the terminal and images saved in the `src/visualization/imgs`-folder.
+
+### Sources for visualization
+
+Dennis T, 2019. _Confusion Matrix Visualization_. https://medium.com/@dtuk81/confusion-matrix-visualization-fc31e3f30fea (accessed 31.10.2020)
+
+NTNU AI Labs, 2020. _tdt7143-2020_. https://github.com/ntnu-ai-lab/tdt4173-2020 (accessed 31.10.2020)
+

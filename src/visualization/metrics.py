@@ -23,7 +23,7 @@ def make_heatmap(y_true, y_pred, ax, title, target_names):
     cf_matrix_counts = sklearn.metrics.confusion_matrix(
         y_true, y_pred, labels=target_names)
     cf_matrix_percentage = sklearn.metrics.confusion_matrix(
-        y_true, y_pred, labels=target_names, normalize='pred')
+        y_true, y_pred, labels=target_names, normalize='true')
     labels = [f'{v1}\n{int(round(v2, 2)*100)}%' for v1, v2 in
               zip(cf_matrix_counts.flatten(), cf_matrix_percentage.flatten())]
     labels = np.asarray(labels).reshape(len(target_names), len(target_names))
