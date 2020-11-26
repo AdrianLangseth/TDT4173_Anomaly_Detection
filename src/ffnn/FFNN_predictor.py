@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow.keras as KK
-from data_load import load_MNIST, create_not_mnist_doubleset
+from src.ffnn.data_load import load_MNIST, create_not_mnist_doubleset
 from numpy.core._multiarray_umath import ndarray
 from scipy.stats import entropy
 

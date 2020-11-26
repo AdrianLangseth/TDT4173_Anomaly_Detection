@@ -1,7 +1,9 @@
-from src.ffnn.visualization_interface import entropy_mnist_train, entropy_mnist_test, entropy_not_mnist, mnist
+from src.ffnn.visualization_interface import entropy_mnist_train, entropy_mnist_test, entropy_not_mnist, mnist, webcode
+from src.ffnn.data_load import get_high_entropy_mnist_test
 import src.visualization.comparison as comparison
 import src.visualization.metrics as metrics
 import src.bnn.interface as bnn_vis
+from src.bnn.website_data import get_high_ffnn_entropy_instances_data
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -260,11 +262,63 @@ def make_entropy_plots_notmnist():
     fig11.savefig('Entropy_BNN_sizes_notMNSIT')
 
 
+### Webcode ###
+def create_MNIST_pictures():
+    ret = get_high_entropy_mnist_test()
+    for i in range(len(ret)):
+        image = ret[i][0]
+        fig = plt.figure
+        plt.imshow(image, cmap='gray')
+        plt.grid(b=None)
+        plt.axis('off')
+        plt.savefig('../visualization/imgs/MNIST_' + str(i), bbox_inches='tight')
+
+
+def print_webdata():
+    data = webcode()
+    true_values = data['y']
+    d_data = data['d']
+    f_data = data['f']
+
+    # FFNN
+    for i in range(10):
+        r_conf = [round(x, 2) for x in f_data[i][1]]
+        print(
+            "Iteration", str(i) + ", FFNN:\n",
+            "Confidences:", r_conf,
+            "Prediction:", f_data[i][0],
+            "True value:", true_values[i]
+        )
+
+    # FFNN w/dropout
+    for i in range(10):
+        r_conf = [round(x, 2) for x in d_data[i][1]]
+        print(
+            "Iteration", str(i) + ", Dropout:\n",
+            "Confidences:", r_conf,
+            "Prediction:", d_data[i][0],
+            "True value:", true_values[i]
+        )
+
+    # BNN
+    conf, pred, y = get_high_ffnn_entropy_instances_data()
+    for i in range(10):
+        r_conf = [round(x, 2) for x in conf[i].tolist()]
+        print(
+            "Iteration", str(i) + ", BNN:\n",
+            "Confidences:", r_conf,
+            "Prediction:", pred[i],
+            "True value:", y[i]
+        )
+
+
 if __name__ == "__main__":
-    print_accuracies()
-    print_reports()
-    make_accuracy_line_chart()
+    # print_accuracies()
+    # print_reports()
+    # make_accuracy_line_chart()
     # make_confusion_matrices()
-    make_entropy_plots_sets()
-    make_entropy_plots_mnist()
-    make_entropy_plots_notmnist()
+    # make_entropy_plots_sets()
+    # make_entropy_plots_mnist()
+    # make_entropy_plots_notmnist()
+    create_MNIST_pictures()
+    print_webdata()

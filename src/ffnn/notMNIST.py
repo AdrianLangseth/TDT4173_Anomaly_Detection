@@ -2,10 +2,10 @@ import numpy as np
 import tensorflow.keras.models as KM
 from src.ffnn.data_load import create_not_mnist_doubleset
 import scipy.stats as stats
-import tensorflow as tf
-import hyperas
-import scipy
-import hyperopt
+# import tensorflow as tf
+# import hyperas
+# import scipy
+# import hyperopt
 
 
 def test_notmnist_entropy_for_all() -> dict:
