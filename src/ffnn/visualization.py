@@ -41,7 +41,7 @@ def print_accuracies():
     print('Accuracy, BNN:', round(acc_bnn, 2))
 
 
-# Precision, recall, F1-score, and support
+# Precision, recall, F1-score, support and accuracy
 def print_reports():
     metrics.print_classification_report(
         y_true_mnist, y_pred_ffnn_mnist, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
@@ -64,7 +64,8 @@ def make_confusion_matrices():
     fig.savefig('../visualization/imgs/Heatmaps')
 
 
-# Compare FFNN, FFNN w/dropout and BNN on accuracy when different training set sizes are used
+# Compare FFNN, FFNN w/dropout and BNN on their accuracy on the MNIST test set
+# when different training set sizes are used
 def make_accuracy_line_chart():
     data_sizes = np.array([1000, 2500, 7000, 19000, 50000], dtype=np.int32)
     ffnn_accuracy = np.zeros(data_sizes.size)
@@ -82,7 +83,7 @@ def make_accuracy_line_chart():
         ax, data_sizes,
         [ffnn_accuracy, dropout_accuracy, bnn_accuracy],
         ['FFNN', 'FFNN w/dropout', 'BNN'],
-        'Size of training set', 'Accuracy (%)', 'Accuracy')
+        'Size of training set', 'Accuracy', 'Accuracy')
     plt.xticks(data_sizes)
 
     fig.savefig('../visualization/imgs/Accuracy_plot')
@@ -250,7 +251,7 @@ if __name__ == "__main__":
     print_accuracies()
     print_reports()
     make_accuracy_line_chart()
-    make_confusion_matrices()
+    # make_confusion_matrices()
     make_entropy_plots_sets()
     make_entropy_plots_mnist()
     make_entropy_plots_notmnist()
